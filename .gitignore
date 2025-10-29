@@ -1,0 +1,51 @@
+# See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
+
+# ignora.git-del-frontend
+
+# Dependencias (Node/Yarn/PNPM)
+/node_modules
+/.pnp
+.pnp.*
+/.yarn/*
+!/.yarn/patches
+!/.yarn/plugins
+!/.yarn/releases
+!/.yarn/versions
+
+# Archivos de entorno locales
+# Solo los archivos .local se ignoran por defecto
+.env*.local
+
+# Archivos de Build y Caché de Next.js
+/.next/
+/out/
+/build/
+
+# Archivos de Typescript
+*.tsbuildinfo
+next-env.d.ts
+
+# Archivos de Despliegue (Vercel)
+/.vercel
+
+# Logs de Debug
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+
+# Pruebas (Testing)
+/coverage/
+
+# Archivos de sistema operativo y misceláneos
+.DS_Store
+Thumbs.db
+*.log
+*.pem
+
+# Archivos de IDE (Opcional, pero recomendado)
+/.idea/
+/.vscode/
+/.nova/
+/.fleet/
+/.zed/

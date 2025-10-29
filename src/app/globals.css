@@ -1,0 +1,191 @@
+@import "tailwindcss";
+
+:root {
+  --background: #ffffff;
+  --foreground: #171717;
+  --color-unimar: #0D4D98;
+  --color-trasparent-unimar: #0f335c3a;  
+  --color-univita:#000EA1;
+  --color-publicidad:#e8e8e8;
+  --color-uniwhite:#ffffff;
+}
+
+@font-face {
+  font-family: 'Montserrat Variable';
+  src: url('/fonts/Montserrat-VariableFont_wght.ttf') format('truetype');
+  font-weight: 100 900;
+  font-style: normal;
+  font-display: swap;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+  --color-unimar: var(--color-unimar);
+  --color-trasparent-unimar: var(--color-trasparent-unimar);  
+  --color-univita: var(--color-univita);
+  --color-publicidad: var(--color-publicidad);
+  --color-uniwhite:var(--color-uniwhite);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --background: #0a0a0a;
+    --foreground: #ededed;
+  }
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  /*font-family: Arial, Helvetica, sans-serif;*/
+  font-family: 'Montserrat Variable', sans-serif;
+}
+
+.animate-spin-gradient{
+  height: 110%;
+  width: 110%;
+  background: conic-gradient(from 0deg, white 60%, #0077ff 70%, white 80%);
+  animation: rotate 5s linear infinite;
+  opacity: 1;
+}
+
+@keyframes rotate{
+  0%{
+    transform: 
+    translateX(-50px)
+    rotate(0deg);
+  }
+  50%{
+    transform:
+    translateX(0px)
+        rotate(180deg);
+  }
+100%{
+    transform:
+    translateX(-20px)
+        rotate(360deg);
+  }
+}
+
+.left{
+  animation: left 20s linear infinite ;
+}
+
+@keyframes left{
+  from{
+    transform: translateX(100%);
+  }
+  to{
+    transform: translateX(-80%);
+  }
+}
+
+.animate-scroll-left{
+  animation: scroll-left 15s linear infinite;
+}
+
+@keyframes scroll-left {
+  from{
+    transform: translateX(0%);
+  }
+  to{
+    transform: translateX(-25%);
+  }  
+}
+
+.animate-scroll-rigth{
+    animation: scroll-rigth 25s linear infinite;
+}
+
+@keyframes scroll-rigth {
+  from{
+    transform: translateX(0%);
+  }
+  to{
+    transform: translateX(-100%);
+  }  
+}
+
+@keyframes notification-rotate {
+  0%{
+    transform: rotate(0deg);
+  }
+  25%{
+    transform: rotate(45deg);
+  }
+  75%{
+    transform: rotate(-45deg);
+  }
+
+}
+
+.rotate-animation{
+  animation: notification-rotate 5s ease infinite;
+}
+
+@keyframes gradient-fade {
+  0% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+
+.color-gradient-animation::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  background-image: linear-gradient(
+    to bottom right,
+    #0D4D98,
+    #1d4ed8,
+    #064ed4
+  ); 
+  animation: gradient-fade 10s ease infinite;
+
+}
+
+
+.btn{
+  @apply rounded-md transition-all duration-300  px-4 py-2
+}
+
+.btn-primary{
+  @apply text-[18px] text-white lg:text-[20px] rounded-xl transition-all duration-300 hover:scale-105 bg-unimar py-2 px-4 cursor-pointer
+}
+
+.btn-secondary{
+  @apply text-[18px]  lg:text-[20px] rounded-xl transition-all duration-300 hover:bg-gray-400/40 bg-gray-300 px-4 py-2 cursor-pointer      
+}
+
+.btn-danger{
+  @apply text-[13px] text-white  transition-all duration-300 hover:scale-105 hover:bg-red-500 hover:opacity-100 opacity-50 bg-red-600 px-2.5 py-1
+}
+
+.btn-back{
+  @apply text-[1.3rem] rounded-full size-[2rem] text-gray-600 transition-all duration-300 hover:scale-105 hover:bg-gray-400 hover:text-white
+}
+
+.input-text{
+  @apply focus:ring-[1px] focus:ring-unimar focus:outline-none ring ring-gray-200  shadow-md bg-white rounded-md items-start
+}
+
+.input{
+  @apply focus:ring-[1px] focus:ring-unimar focus:outline-none ring ring-gray-400 shadow-md rounded-[6px]
+}
+
+.card-small{
+  @apply w-sm sm:w-9/12 md:w-5/11 xl:w-[18rem]  
+}
+
+.title{
+   @apply text-[1.5rem] md:text-[2rem] xl:text-[2.5rem] font-bold
+}
