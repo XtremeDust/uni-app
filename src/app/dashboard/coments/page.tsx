@@ -215,22 +215,28 @@ import {
                                               <TableCell className="overflow-hidden"><p>{data.contenido ? data.contenido.slice(0, 60) + '...':''}</p></TableCell>
                                               <TableCell>{data.fecha_creacion}</TableCell>
                                               <TableCell className="place-items-center">
-                                                  <p  className={`items-center rounded-full p-2 w-40 font-semibold ${data.estado==='privado'? ' bg-gray-400/50 text-gray-800' : 'bg-blue-400/50 text-blue-800'}`}>
+                                                <p  className={`
+                                                    inline-block items-center rounded-full px-4 py-2 text-sm font-semibold ${
+                                                    data.estado === 'privado' ? 'bg-blue-100 text-blue-800' :
+                                                    'bg-gray-200 text-gray-800'
+
+                                                }`}>
                                                       {data.estado ? data.estado.charAt(0).toUpperCase() + data.estado.slice(1) : ''}
-                                                  </p>
+                                                </p>
                                               </TableCell>
                                               <TableCell className="space-x-2 flex justify-evenly text-white">
                                                   {buttons.map((btn)=>(
                                                       <React.Fragment key={btn.id}>
                                                           {btn.id===3 &&(
-                                                          <Button  className={`btn rounded-lg cursor-pointer size-14 hover:bg-rose-300/50`}>
-                                                                  <Image
-                                                                      src={btn.img}
-                                                                      alt={btn.button}
-                                                                      width={500}
-                                                                      height={500}
-                                                                  />
-                                                              </Button>
+                                                            <Button key={btn.id} className={`btn rounded-lg cursor-pointer size-12 hover:bg-rose-300/50 )}`}>
+                                                                <Image
+                                                                    className='scale-105'
+                                                                    src={btn.img}
+                                                                    alt={btn.button}
+                                                                    width={500}
+                                                                    height={500}
+                                                                />
+                                                            </Button>
                                                           )}
                                                       </React.Fragment>
                                                   ))}

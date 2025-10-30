@@ -1,5 +1,5 @@
 'use client'
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import Image from 'next/image'
 import { 
   Input,
@@ -12,9 +12,9 @@ import {
 
  const titleventos=[
     {id:1, titulo:"Evento"},
-    {id:2, titulo:"Tipo"},
-    {id:3, titulo:"Inscritos"},
-    {id:4, titulo:"Fecha"},
+    {id:2, titulo:"Disiplinas"},
+    {id:3, titulo:"Inicia"},
+    {id:4, titulo:"Termina"},
     {id:5, titulo:"Estado"},
     {id:6, titulo:"Acciones"},
  ]
@@ -92,6 +92,27 @@ import {
     }
 ];
 
+interface Creador {
+  id: number;
+  nombre: string;
+  email: string;
+  rol: string;
+  cedula: string;
+  telefono: string;
+}
+
+
+interface ApiTournament {
+  id: number;
+  nombre: string;
+  descripcion: string;
+  estado: 'proximo' | 'activo' | 'finalizado'; 
+  creador: Creador;
+  total_disiplinas: number; 
+  inicio: string;
+  fin: string;
+}
+
 const buttons = [
     {id:1, button:"Desacargar", img:"/bandeja-de-descarga.png"},
     {id:2, button:"Editar", img:"/lapiz (1).png"},
@@ -145,7 +166,35 @@ export default function page() {
                 ...(isEst !== 'Todos' ? [{ id: 0, label: 'Todos' }] : []),
                 ...filteredEst,
             ];
-  
+        
+        const [tournaments, setTournaments] = useState<ApiTournament[]>([]);
+        const [loading, setLoading] = useState(true);
+        const [error, setError] = useState<string | null>(null);
+
+        useEffect(() => {
+            async function fetchTournaments() {
+                setLoading(true);
+                setError(null);
+                 const API_URL = process.env.NEXT_PUBLIC_API_URL;
+                try {
+                    const response = await fetch(`${API_URL}/tournaments`);
+                    if (!response.ok) {
+                        throw new Error(`Error HTTP: ${response.statusText}`);
+                    }
+                    const jsonData = await response.json();
+                    setTournaments(jsonData.data); // Obtiene el array desde la clave 'data'
+                } catch (e: any) {
+                    setError(e.message || "Error al cargar torneos");
+                } finally {
+                    setLoading(false);
+                }
+            }
+            fetchTournaments();
+        }, []);
+
+        if (loading) return <p>Cargando torneos...</p>;
+        if (error) return <p>Error: {error}</p>;
+
   return (
     <div className="Case2 overflow-y-auto text-black">
             <section className="grid grid-cols-1 space-y-3 lg:space-y-0 lg:gap-6 mb-4">
@@ -161,7 +210,7 @@ export default function page() {
                                 width={500}
                                 height={500}
                             />
-                              <h3 className="font-semibold">Añadir Evento</h3>
+                              <h3 className="font-semibold">Añadir Torneo</h3>
                         </Button>
                     </div>
 
@@ -221,19 +270,28 @@ export default function page() {
                         </TableHead>
 
                         <TableBody className="bg-white divide-y divide-gray-200">
-                            {eventos.map((data)=>(
-                                <React.Fragment key={data.id}>
-                                    {data.tipo_evento === 'Deportivo'  &&(
+                            {tournaments.map((tournament)=>(
+                                <React.Fragment key={tournament.id}>
                                         <TableRow  className="hover:bg-gray-100 text-center">
-                                            <TableCell className="font-bold">{data.nombre}</TableCell>
-                                            <TableCell>{data.tipo_evento}</TableCell>
-                                            <TableCell>{data.inscritos}</TableCell>
-                                            <TableCell>{data.fecha_inicio}</TableCell>
-                                            <TableCell className="place-items-center"><p  className={`rounded-full p-2 w-40 font-semibold text-gray-950 ${data.estado==='Activo'? ' bg-green-400/50 text-green-800' : (data.estado==='Finalizado'? 'bg-red-400/50 text-red-800': 'bg-yellow-400/50 text-yellow-800')}`}>{data.estado}</p></TableCell>
+                                            <TableCell className="font-bold">{tournament.nombre}</TableCell>
+                                            <TableCell>{tournament.total_disiplinas}</TableCell>
+                                            <TableCell>{tournament.inicio}</TableCell>
+                                            <TableCell>{tournament.fin}</TableCell>
+                                            <TableCell className="place-items-center">
+                                            <p className={`inline-block items-center rounded-full px-3 py-2 text-sm font-semibold ${
+                                                tournament.estado === 'proximo' ? 'bg-blue-100 text-blue-800' :
+                                                tournament.estado === 'activo' ? 'bg-green-100 text-green-800' :
+                                                'bg-gray-100 text-gray-800'
+                                            }`}>
+                                                {/* Capitaliza la primera letra */}
+                                                {tournament.estado.charAt(0).toUpperCase() + tournament.estado.slice(1)}
+                                            </p>
+                                        </TableCell>
                                             <TableCell className="space-x-2 flex justify-evenly text-white">
                                                 {buttons.map((btn)=>(
-                                                    <Button key={btn.id} className={`btn rounded-lg cursor-pointer size-14 ${btn.id ===1? 'hover:bg-unimar/10' : (btn.id===2? 'hover:bg-gray-300/50': 'hover:bg-rose-300/50' )}`}>
+                                                    <Button key={btn.id} className={`btn rounded-lg cursor-pointer size-12 ${btn.id ===1? 'hover:bg-unimar/10' : (btn.id===2? 'hover:bg-gray-300/50': 'hover:bg-rose-300/50' )}`}>
                                                         <Image
+                                                            className='scale-110'
                                                             src={btn.img}
                                                             alt={btn.button}
                                                             width={500}
@@ -243,8 +301,6 @@ export default function page() {
                                                 ))}
                                             </TableCell>
                                         </TableRow>
-
-                                    )}
                                 </React.Fragment>
                             ))}
                         </TableBody>
@@ -329,11 +385,17 @@ export default function page() {
                                             <TableCell>{data.tipo_evento}</TableCell>
                                             <TableCell>{data.inscritos}</TableCell>
                                             <TableCell>{data.fecha_inicio}</TableCell>
-                                            <TableCell className="place-items-center"><p  className={`rounded-full p-2 w-40 font-semibold text-gray-950 ${data.estado==='Activo'? ' bg-green-400/50 text-green-800' : (data.estado==='Finalizado'? 'bg-red-400/50 text-red-800': 'bg-yellow-400/50 text-yellow-800')}`}>{data.estado}</p></TableCell>
+                                            <TableCell className="place-items-center"><p  className={`inline-block items-center rounded-full px-4 py-2 text-sm font-semibold ${
+                                                data.estado === 'Próximo' ? 'bg-blue-100 text-blue-800' :
+                                                data.estado === 'Activo' ? 'bg-green-100 text-green-800' :
+                                                'bg-gray-200 text-gray-800'
+                                                }`}>
+                                                    {data.estado}</p></TableCell>
                                             <TableCell className="space-x-2 flex justify-evenly text-white">
                                                 {buttons.map((btn)=>(
-                                                    <Button key={btn.id} className={`btn rounded-lg cursor-pointer size-14 ${btn.id ===1? 'hover:bg-unimar/10' : (btn.id===2? 'hover:bg-gray-300/50': 'hover:bg-rose-300/50' )}`}>
+                                                    <Button key={btn.id} className={`btn rounded-lg cursor-pointer size-12 ${btn.id ===1? 'hover:bg-unimar/10' : (btn.id===2? 'hover:bg-gray-300/50': 'hover:bg-rose-300/50' )}`}>
                                                         <Image
+                                                            className='scale-110'
                                                             src={btn.img}
                                                             alt={btn.button}
                                                             width={500}

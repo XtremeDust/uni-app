@@ -371,7 +371,7 @@ export default function modal_Inscription({onCloseExternal}:ModalProps) {
                             </>
                         )}
 
-                            {isSept ===3 &&(
+                        {isSept ===3 &&(
                             <>
                                 <section className="flex flex-col py-4 px-3 shadow rounded-xl bg-gray-100">
 
@@ -394,13 +394,13 @@ export default function modal_Inscription({onCloseExternal}:ModalProps) {
                                                 <div className="lg:grid lg:grid-cols-2 py-4 mb-6 px-2 gap-3 place-content-center ">
                                                     <div className="text-start space-y-3">
                                                         <InputGroup label="Nombre del equipo" className="" For="nombre">
-                                                            <Input className="input bg-white" name="" type="text"></Input>
+                                                            <Input className="input bg-white" name="" type="text" placeholder="Ej:Los Campeones"></Input>
                                                         </InputGroup> 
                                                         <InputGroup label="Madriana del equipo" className="" For="nombre">
-                                                            <Input className="input bg-white" type="text"/>
+                                                            <Input className="input bg-white" type="text" placeholder="Ej:María Perez"/>
                                                         </InputGroup> 
                                                         <InputGroup label="Color del uniforme" className="" For="nombre">
-                                                            <Input className="input bg-white col-start-3" type="text"/>
+                                                            <Input className="input bg-white col-start-3" type="text" placeholder="Ej: Azul y Blanco"/>
                                                         </InputGroup>                                                             
                                                     </div>
                                                     <InputGroup label="Logo del equipo" className="text-start" For="nombre">
@@ -408,7 +408,7 @@ export default function modal_Inscription({onCloseExternal}:ModalProps) {
                                                         <div className=" items-center p-1 h-full">
                                                             <label htmlFor="sumitFile" className="flex flex-col  h-full
                                                                 rounded-lg border-2 border-dashed  bg-white hover:bg-white/60 text-center cursor-pointer
-                                                                font-bold py-1  mb-1 place-items-center justify-center">
+                                                                 py-1  mb-1 place-items-center justify-center">
                                                                 <div className="relative size-[58px] rounded-2xl">
                                                                     <Image
                                                                         className=" absolute inset-0 object-contain p-2"
@@ -417,7 +417,8 @@ export default function modal_Inscription({onCloseExternal}:ModalProps) {
                                                                         fill
                                                                     />
                                                                 </div>
-                                                                <p>Subir un Archivo</p>
+                                                                <p> <span className="text-unimar font-bold">Subir un Archivo</span> o arrastra y soltar </p>
+                                                                <p className="text-[12px]"> PNG, JGG, GIF hasta 10MB </p>
                                                             </label>
                                                             
                                                         </div>
@@ -464,23 +465,20 @@ export default function modal_Inscription({onCloseExternal}:ModalProps) {
                                                 />
                                             </div>
                                             <div className="text-start">
-                                                <h3 className="text-[1.3rem] font-bold">Información de los Integrantes del Equipo</h3>
+                                                <h3 className="text-[1.3rem] font-bold">Integrantes del Equipo</h3>
                                             </div>
                                         </div>                                                    
                                         
                                         <div className="text-start  flex flex-wrap gap-3 p-4 bg-gray-200/65 shadow-md rounded-lg ">
                                             <InputGroup label="Dorsal" className="w-[64px]" For="Dorsal">
-                                                <Input className="input bg-white"id="Dorsal" type="text"></Input>
+                                                <Input className="input bg-white"id="Dorsal" type="text" placeholder="10"></Input>
                                             </InputGroup> 
                                             <InputGroup label="Cédula" className="" For="nombre">
-                                                <Input className="input bg-white" name="" type="text"></Input>
+                                                <Input className="input bg-white" name="" type="text" placeholder="15236547"></Input>
                                             </InputGroup> 
                                             <InputGroup label="Correo institucional" className="" For="nombre">
-                                                <Input className="input bg-white" name="" type="text"></Input>
+                                                <Input className="input bg-white" name="" type="text" placeholder="jugador@unimar.edu.ve"></Input>
                                             </InputGroup> 
-                                            <InputGroup label="Numero del Telefono" className="" For="nombre">
-                                                <Input className="input bg-white" type="text"/>
-                                            </InputGroup>
                                         </div>
                                             <Button className="flex items-center text-white place-content-center hover:bg-unimar/92 gap-1.5 cursor-pointer bg-unimar p-2 rounded-2xl">
                                                 <div className="relative size-[32px]">

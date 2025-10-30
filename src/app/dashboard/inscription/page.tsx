@@ -294,16 +294,17 @@ export default function page() {
                                     <TableCell>{entry.categoria}</TableCell>
                                     <TableCell>{entry.integrantes_total}</TableCell>
                                     <TableCell  className="place-items-center">
-                                        <p  className={`items-center rounded-full p-2 w-40 font-semibold text-gray-950
-                                             ${entry.estado==='Aceptado'? ' bg-green-400/50 text-green-800' :
-                                            (entry.estado==='Rechazado'? 'bg-red-400/50 text-red-800': 'bg-yellow-400/50 text-yellow-800')}`}>
+                                        <p  className={`items-center rounded-full px-4 py-2 font-semibold text-gray-950
+                                             ${entry.estado==='Aceptado'? ' bg-green-200/65 text-green-800' :
+                                            (entry.estado==='Rechazado'? 'bg-red-200/65 text-red-800': 'bg-yellow-200/65 text-yellow-800')}`}>
                                             {entry.estado}
                                           </p>
                                     </TableCell>
                                     <TableCell className="space-x-2 flex justify-evenly text-white">
                                         {buttons.map((btn)=>(
-                                            <Button key={btn.id} className={`btn rounded-lg cursor-pointer size-14 ${btn.id ===1? 'hover:bg-unimar/10' : (btn.id===2? 'hover:bg-gray-300/50': 'hover:bg-rose-300/50' )}`}>
+                                            <Button key={btn.id} className={`btn rounded-lg cursor-pointer size-12 ${btn.id ===1? 'hover:bg-unimar/10' : (btn.id===2? 'hover:bg-gray-300/50': 'hover:bg-rose-300/50' )}`}>
                                                 <Image
+                                                    className='scale-110'
                                                     src={btn.img}
                                                     alt={btn.button}
                                                     width={500}
@@ -373,8 +374,9 @@ export default function page() {
                                                     <TableCell>{data.nombre}</TableCell>
                                                     <TableCell className="space-x-2 flex justify-evenly text-white">
                                                         {buttons.map((btn)=>(
-                                                            <Button key={btn.id} className={`btn rounded-lg cursor-pointer size-14 ${btn.id ===1? 'hover:bg-unimar/10' : (btn.id===2? 'hover:bg-gray-300/50': 'hover:bg-rose-300/50' )}`}>
+                                                            <Button key={btn.id} className={`btn rounded-lg cursor-pointer size-12 ${btn.id ===1? 'hover:bg-unimar/10' : (btn.id===2? 'hover:bg-gray-300/50': 'hover:bg-rose-300/50' )}`}>
                                                                 <Image
+                                                                    className='scale-110'
                                                                     src={btn.img}
                                                                     alt={btn.button}
                                                                     width={500}
@@ -446,8 +448,9 @@ export default function page() {
                                     <TableCell>{sub.hace_tiempo}</TableCell>
                                     <TableCell className="space-x-2 flex justify-evenly text-white">
                                         {buttons.map((btn)=>(
-                                            <Button key={btn.id} className={`btn rounded-lg cursor-pointer size-14 ${btn.id ===1? 'hover:bg-unimar/10' : (btn.id===2? 'hover:bg-gray-300/50': 'hover:bg-rose-300/50' )}`}>
+                                            <Button key={btn.id} className={`btn rounded-lg cursor-pointer size-12 ${btn.id ===1? 'hover:bg-unimar/10' : (btn.id===2? 'hover:bg-gray-300/50': 'hover:bg-rose-300/50' )}`}>
                                                 <Image
+                                                    className='scale-110'
                                                     src={btn.img}
                                                     alt={btn.button}
                                                     width={500}
