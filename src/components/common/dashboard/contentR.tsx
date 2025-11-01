@@ -3,8 +3,8 @@ import React, { Suspense } from 'react';
     const HomeModule = React.lazy(() => import('@/app/dashboard/home/page'));
     const NormativasModule = React.lazy(() => import('@/app/dashboard/regulations/page'));
     const InscripcionesModule = React.lazy(() => import('@/app/dashboard/inscription/page'));
-    const EventosModule = React.lazy(() => import('@/app/dashboard/events/general/page')); 
-    const TorneosModule = React.lazy(() => import('@/app/dashboard/events/gestion/page')); 
+    const EventosModule = React.lazy(() => import('@/app/dashboard/gestion/general/page')); 
+    const TorneosModule = React.lazy(() => import('@/app/dashboard/gestion/tournaments/page')); 
     const OfertasModule = React.lazy(() => import('@/app/dashboard/offerts/page')); 
     const ComentariosModule = React.lazy(() => import('@/app/dashboard/coments/page'));
 

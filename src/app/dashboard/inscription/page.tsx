@@ -1,5 +1,5 @@
 'use client'
-import React, { useEffect, useState } from 'react'
+import React, { MouseEventHandler, useEffect, useState } from 'react'
 import Image from 'next/image'
 import { 
   Input,
@@ -8,22 +8,19 @@ import {
   Table, 
   TableBody, TableCell, TableRow,
   TableHead, TableHeaderCell,
-  InputGroup
+  InputGroup,
+  Modal,
+  ContainModal,
+  HeaderModal,
+  FooterModal
  } from '@/types/ui_components'
 
-//tabla inscripciones
-interface ApiTeam {
-  id: number;
-  nombre: string;
-  disciplina: string;
-  categoria: string;
-  integrantes_total: number;
-  estado: 'Aceptado' | 'Rechazado' | 'Pendiente';
-}
+
 
 //tabla usuarios por equipo api/teams
 interface ApiUser {
-  name: string | null;
+  id: number;
+  nombre: string | null;
   email: string | null;
   cedula: string | null;
   telefono: string | null;
@@ -50,6 +47,26 @@ interface ApiSub{
     fecha_suscripcion:string;
     hace_tiempo:string;
     
+}
+
+//tabla inscripciones
+interface ApiTeam {
+  id: number;
+  torneo: string;
+  nombre: string;
+  disciplina: string;
+  categoria: string;
+  logo:string;
+  integrantes_total: number;
+  estado: 'Aceptado' | 'Rechazado' | 'Pendiente';
+  team_id_for_modal: number | null;
+  user_id_for_modal: number | null;
+  color:string;
+  captain: {
+    id: number;
+    nombre: string;
+  };
+    integrantes_data: ApiUser[];
 }
 
 
@@ -136,6 +153,24 @@ export default function page() {
             ...filteredEst,
         ];
 
+        const handleActionClick = (buttonId: number, x:string) => {
+            
+            if (buttonId === 1) {
+                console.log('ACCIÓN: Descargar');
+                console.log(x);
+            }
+            
+            if (buttonId === 2) {
+                console.log('ACCIÓN: Editar');
+                console.log(x);
+            }
+            
+            if (buttonId === 3) {
+                console.log('ACCIÓN: Eliminar');
+                console.log(x);
+            }
+        };
+
 
         const [teams, setTeams] = useState<ApiTeam[]>([]);
         const [userTeam, setUserTeam] = useState<ApiUsers[]>([]);
@@ -144,6 +179,17 @@ export default function page() {
         const [loading, setLoading] = useState(true);
         const [error, setError] = useState<string|null>(null);
 
+        // modal
+            const [isModalOpen, setIsModalOpen] = useState(false);
+            const [loadingModal, setLoadingModal] = useState(false);
+            const [selectedEntry, setSelectedEntry] = useState<ApiTeam | null>(null);
+            const [selectedTeam, setSelectedTeam] = useState<ApiTeam | null>(null);
+
+            const [isModalOpenSub, setIsModalOpenSub] =useState(false);
+            const [selectedEntrySub, setSelectedEntrySub ]=useState<ApiSub|null>(null);
+            const [selectedSub, setSelectedSub]=useState< ApiSub|null>(null);
+        //
+        
         useEffect(() => {
             async function fetchAllData() {
                 try {
@@ -160,8 +206,8 @@ export default function page() {
                     ]);
 
                     // Comprobamos si ambas respuestas son exitosas
-                    if (!userTeamsRes.ok) throw new Error(`Error en equipos: ${userTeamsRes.statusText}`);
                     if (!teamsRes.ok) throw new Error(`Error en inscripciones: ${teamsRes.statusText}`);
+                    if (!userTeamsRes.ok) throw new Error(`Error en equipos: ${userTeamsRes.statusText}`);
                     if (!subRes.ok) throw new Error(`Error en suscripciones: ${subRes.statusText}`);
 
                     const userTeamData = await userTeamsRes.json();
@@ -188,6 +234,62 @@ export default function page() {
         
         if (loading) return <p>Cargando datos...</p>;
         if (error) return <p>Error al cargar: {error}</p>;
+
+    
+    const API_URL = process.env.NEXT_PUBLIC_API_URL;
+        // --- Función para abrir el MODAL y buscar detalles ---
+    const handleVerDetalles = async (entry: ApiTeam) => {
+        // 1. Guardar datos que ya tenemos (de la inscripción)
+        setSelectedEntry(entry);
+        setIsModalOpen(true);
+        setLoadingModal(true);
+        setSelectedTeam(null); // Limpiar datos de equipo anterior
+
+        // 2. Determinar si es un equipo o un usuario individual
+        if (entry.team_id_for_modal) {
+            // Es un equipo, buscar en /api/teams
+            try {
+                const res = await fetch(`${API_URL}/teams/${entry.team_id_for_modal}`);
+                if (!res.ok) throw new Error(`Error en API teams: ${res.statusText}`);
+                const jsonData = await res.json();
+                setSelectedTeam(jsonData.data); // Guardar detalles del equipo
+            } catch (e: any) {
+                console.error("Error al cargar detalles del equipo:", e);
+                // El modal mostrará un error
+            } finally {
+                setLoadingModal(false);
+            }
+        } else if (entry.user_id_for_modal) {
+            // Es un individual. No necesitamos buscar en /api/teams.
+            // (Podríamos buscar en /api/users/{id} si quisiéramos más detalles)
+            // Por ahora, solo indicamos que la carga terminó.
+            setLoadingModal(false);
+        } else {
+            // No hay ID, solo cerrar
+            setLoadingModal(false);
+        }
+    };
+
+    const handleVerDetallesSub = async (entrySub:ApiSub)=>{
+
+        setSelectedEntrySub(entrySub);
+        setIsModalOpenSub(true);
+        setLoadingModal(true);
+        setSelectedSub(null);
+
+        try {
+                const res = await fetch(`${API_URL}/subscribed-users/${entrySub.id_suscripcion}`);
+                if (!res.ok) throw new Error(`Error en API subs: ${res.statusText}`);
+                const jsonData = await res.json();
+                setSelectedSub(jsonData.data); // Guardar detalles del equipo
+            } catch (e: any) {
+                console.error("Error al cargar detalles del suscriptor:", e);
+                // El modal mostrará un error
+            } finally {
+                setLoadingModal(false);
+            }
+    }
+        
 
   return (
     <div className="Case2 overflow-y-auto text-black">
@@ -288,7 +390,9 @@ export default function page() {
 
                         <TableBody className="bg-white divide-y divide-gray-200">
                             {teams.map((entry)=>(
-                                <TableRow key={entry.id} className="hover:bg-gray-100 text-center">
+                                <TableRow key={entry.id} className="cursor-pointer hover:bg-gray-100 text-center"
+                                    onClick={() => handleVerDetalles(entry)}
+                                  >
                                     <TableCell className="font-bold">{entry.nombre}</TableCell>
                                     <TableCell>{entry.disciplina}</TableCell>
                                     <TableCell>{entry.categoria}</TableCell>
@@ -302,15 +406,25 @@ export default function page() {
                                     </TableCell>
                                     <TableCell className="space-x-2 flex justify-evenly text-white">
                                         {buttons.map((btn)=>(
-                                            <Button key={btn.id} className={`btn rounded-lg cursor-pointer size-12 ${btn.id ===1? 'hover:bg-unimar/10' : (btn.id===2? 'hover:bg-gray-300/50': 'hover:bg-rose-300/50' )}`}>
-                                                <Image
-                                                    className='scale-110'
-                                                    src={btn.img}
-                                                    alt={btn.button}
-                                                    width={500}
-                                                    height={500}
-                                                />
-                                            </Button>
+                                            <div key={btn.id}
+                                                onClick={(e) => {
+                                                  e.stopPropagation();
+                                                }}
+                                            >
+                                                <Button className={`btn rounded-lg cursor-pointer size-12 ${btn.id ===1? 'hover:bg-unimar/10' : (btn.id===2? 'hover:bg-gray-300/50': 'hover:bg-rose-300/50' )}`}
+                                                    onClick={() => { 
+                                                        handleActionClick(btn.id, entry.nombre)
+                                                    }}
+                                                >
+                                                    <Image
+                                                        className='scale-110'
+                                                        src={btn.img}
+                                                        alt={btn.button}
+                                                        width={500}
+                                                        height={500}
+                                                    />
+                                                </Button>
+                                            </div>
                                         ))}
                                     </TableCell>
                                 </TableRow>
@@ -321,7 +435,20 @@ export default function page() {
 
             </section>
 
-            <section className="grid grid-cols-1 space-y-3 lg:space-y-0 lg:gap-6 mb-4">
+
+             {/* --- El Modal de equipos --- */}
+            {isModalOpen && (
+                <DetalleEquipoModal
+                    entryData={selectedEntry}
+                    teamData={selectedTeam}
+                    isLoading={loadingModal}
+                    state={isModalOpen===true ? true:false}
+                    onClose={() => setIsModalOpen(false)}
+                />
+            )}
+
+
+            <section className="USERS INSRIPTION     grid grid-cols-1 space-y-3 lg:space-y-0 lg:gap-6 mb-4">
 
                 <div className="bg-white p-6 rounded-lg shadow col-span-2">
                     <h3 className="text-2xl font-bold mb-6">Usuarios Inscritos</h3>
@@ -397,7 +524,7 @@ export default function page() {
 
             </section>
 
-            <section className="grid grid-cols-1 space-y-3 lg:space-y-0 lg:gap-6 mb-4">
+            <section className="SUBSCRIPCION grid grid-cols-1 space-y-3 lg:space-y-0 lg:gap-6 mb-4">
 
                 <div className="bg-white p-6 rounded-lg shadow col-span-2">
                     <h3 className="text-2xl font-bold mb-6">Usuarios Suscritos</h3>
@@ -439,24 +566,36 @@ export default function page() {
                         </TableHead>
 
                         <TableBody className="bg-white divide-y divide-gray-200">
-                            {sub.map((sub)=>(
+                            {sub.map((entrySub)=>(
                                 
-                                <TableRow  key={sub.id_suscripcion} className="hover:bg-gray-100 text-center">
+                                <TableRow  key={entrySub.id_suscripcion} className="cursor-pointer hover:bg-gray-100 text-center"
+                                onClick={() => handleVerDetallesSub(entrySub)}
+                                >
                                 
-                                    <TableCell className="font-bold">{sub.suscriptor.email}</TableCell>
-                                    <TableCell>{sub.fecha_suscripcion}</TableCell>
-                                    <TableCell>{sub.hace_tiempo}</TableCell>
+                                    <TableCell className="font-bold">{entrySub.suscriptor.email}</TableCell>
+                                    <TableCell>{entrySub.fecha_suscripcion}</TableCell>
+                                    <TableCell>{entrySub.hace_tiempo}</TableCell>
                                     <TableCell className="space-x-2 flex justify-evenly text-white">
                                         {buttons.map((btn)=>(
-                                            <Button key={btn.id} className={`btn rounded-lg cursor-pointer size-12 ${btn.id ===1? 'hover:bg-unimar/10' : (btn.id===2? 'hover:bg-gray-300/50': 'hover:bg-rose-300/50' )}`}>
-                                                <Image
-                                                    className='scale-110'
-                                                    src={btn.img}
-                                                    alt={btn.button}
-                                                    width={500}
-                                                    height={500}
-                                                />
-                                            </Button>
+                                            <div key={btn.id}
+                                                onClick={(e) => {
+                                                  e.stopPropagation();
+                                                }}
+                                            >
+                                                <Button className={`btn rounded-lg cursor-pointer size-12 ${btn.id ===1? 'hover:bg-unimar/10' : (btn.id===2? 'hover:bg-gray-300/50': 'hover:bg-rose-300/50' )}`}
+                                                    onClick={() => { 
+                                                       
+                                                    }}
+                                                >
+                                                    <Image
+                                                        className='scale-110'
+                                                        src={btn.img}
+                                                        alt={btn.button}
+                                                        width={500}
+                                                        height={500}
+                                                    />
+                                                </Button>
+                                            </div>
                                         ))}
                                     </TableCell>
                             
@@ -469,7 +608,141 @@ export default function page() {
 
             </section>            
 
+            {/* --- El Modal suscriptores --- */}
+            {isModalOpenSub && (
+                <DetalleSubs
+                    entryDataSub={selectedEntrySub}
+                    userData={selectedSub}
+                    isLoading={loadingModal}
+                    state={isModalOpenSub===true ? true:false}
+                    onClose={() => setIsModalOpenSub(false)}
+                />
+            )}
 
     </div>
   )
+}
+
+
+interface ModalProps {
+    entryData: ApiTeam | null;
+    teamData: ApiTeam | null;
+    isLoading: boolean;
+    state:boolean;
+    onClose: () => void;
+}
+
+function DetalleEquipoModal({ entryData, teamData, isLoading, onClose, state }: ModalProps) {
+    if (!entryData) return null;
+
+    const esIndividual = !!entryData.user_id_for_modal;
+
+    return (
+        <Modal state={state}>
+            <ContainModal className='bg-white'>
+                <HeaderModal className="flex-none" onClose={onClose}>
+                    <div className="text-start">
+                        <h2 className="ml-5 title">Detalles de la Inscripción</h2>
+                    </div>
+                </HeaderModal>
+                <div > {/* Fondo oscuro */}
+                    <div > {/* Contenido del modal */}
+                        
+                       
+                        
+                       
+                        
+                        {/* 1. Información de la INSCRIPCIÓN (la que ya teníamos) */}
+                        <p><strong>Torneo:</strong> {entryData.torneo}</p>
+                        <p><strong>Deporte:</strong> {entryData.disciplina}</p>
+                        <p><strong>Categoría:</strong> {entryData.categoria}</p>
+                        <p><strong>Estado:</strong> {entryData.estado}</p>
+                        <hr />
+
+                        {/* 2. Información del EQUIPO/JUGADOR (la que buscamos) */}
+                        {isLoading ? (
+                            <p>Cargando detalles del competidor...</p>
+                        ) : esIndividual ? (
+                            // Caso Individual
+                            <div>
+                                <h3>Jugador Individual</h3>
+                                <p><strong>Nombre:</strong> {entryData.nombre}</p>
+                                {/* Aquí podrías mostrar más detalles si el API de 'user' se llamara */}
+                            </div>
+                        ) : teamData ? (
+                            // Caso Equipo
+                            <div>
+                                <h3>Detalles del Equipo</h3>
+                                <p><strong>Nombre:</strong> {teamData.nombre}</p>
+                                <p><strong>Capitán:</strong> {teamData.captain?.nombre || 'No asignado'}</p>
+                                <p><strong>Color:</strong> {teamData.color}</p>
+                                <p><strong>Imagen</strong>{teamData.logo}</p>
+                                {/* <img src={teamData.logo} alt="Logo" /> */}
+                                <h4>Integrantes ({teamData.integrantes_total}):</h4>
+                                <ul>
+                                    {teamData.integrantes_data.map(member => (
+                                        <li key={member.id}>
+                                        {member.id} {member.nombre} {member.cedula} ({member.email})
+                                        </li>
+                                    ))}
+                                </ul>
+                            </div>
+                        ) : (
+                            <p>No se pudieron cargar los detalles del equipo.</p>
+                        )}
+                    </div>
+                </div>
+            </ContainModal>
+        </Modal>
+    );
+}
+
+
+interface ModalPropsSubs {
+    entryDataSub: ApiSub | null;
+    userData: ApiSub | null;
+    isLoading: boolean;
+    state:boolean;
+    onClose: () => void;
+}
+
+function DetalleSubs({ entryDataSub, userData, isLoading, onClose, state }: ModalPropsSubs) {
+    if (!entryDataSub) return null;
+
+    return (
+        <Modal state={state}>
+            <ContainModal className='bg-white'>
+                <HeaderModal className="flex-none" onClose={onClose}>
+                    <div className="text-start">
+                        <h2 className="ml-5 title">Detalles del Suscriptor</h2>
+                    </div>
+                </HeaderModal>
+                <div > {/* Fondo oscuro */}
+                    <div > {/* Contenido del modal */}
+                        
+                        {/* 1. Información del suscriptor */}
+                        <p><strong>Fecha de suscripción:</strong> {entryDataSub.fecha_suscripcion}</p>
+                        <p><strong>Suscrito hace:</strong> {entryDataSub.hace_tiempo}</p>
+                        <hr />
+
+                        {/* 2. Información del EQUIPO/JUGADOR (la que buscamos) */}
+                        {isLoading ? (
+                            <p>Cargando detalles del suscriptor...</p>
+                        )  : userData ? (
+                            // Caso Equipo
+                            <div>
+                                <h3>Información del suscriptor</h3>
+                                <p><strong>Nombre:</strong> {userData.suscriptor.nombre}</p>
+                                <p><strong>Cedula:</strong> {userData.suscriptor.cedula}</p>
+                                <p><strong>Email:</strong> {userData.suscriptor.email}</p>
+                                <p><strong>Telefono:</strong> {userData.suscriptor.telefono}</p>
+                            </div>
+                        ) : (
+                            <p>No se pudieron cargar los detalles del suscriptor.</p>
+                        )}
+                    </div>
+                </div>
+            </ContainModal>
+        </Modal>
+    );
 }

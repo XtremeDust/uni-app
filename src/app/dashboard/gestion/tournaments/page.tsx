@@ -108,7 +108,7 @@ interface ApiTournament {
   descripcion: string;
   estado: 'proximo' | 'activo' | 'finalizado'; 
   creador: Creador;
-  total_disiplinas: number; 
+  total_disiplinas: string; 
   inicio: string;
   fin: string;
 }

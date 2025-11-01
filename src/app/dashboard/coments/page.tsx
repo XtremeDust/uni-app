@@ -7,7 +7,8 @@ import {
   Select, 
   Table, 
   TableBody, TableCell, TableRow,
-  TableHead, TableHeaderCell
+  TableHead, TableHeaderCell,
+  Modal, HeaderModal,ContainModal
  } from '@/types/ui_components'
 
   export interface currentProps{
@@ -67,15 +68,24 @@ import {
       {id:3, button:"Eliminar", img:"/basura (1).png"}
   ]
 
-  
+  interface ApiList{
+    id:number
+    estado: 'publico'|'privado';
+    fecha_creacion:string;
+    autor:string;
+    comentario_extracto:string;
+  }
+
   interface APIcoment{
      id: number;
-    titulo: string;
-    contenido: string;
+    comentario: string;
     estado: string;
     autor: {
         id: number;
+        nombre:string;
         email: string;
+        cedula:string;
+        telefono:string;
     };
     fecha_creacion:string;
   }
@@ -108,9 +118,18 @@ import {
     ];
 
 
-    const [posts, setPosts] = useState<APIcoment[]>([]);
+    const [posts, setPosts] = useState<ApiList[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string|null>(null);
+
+    // modal
+        const [isModalOpen, setIsModalOpen] = useState(false);
+        const [loadingModal, setLoadingModal] = useState(false);
+        const [selectedEntry, setSelectedEntry] = useState<ApiList | null>(null);
+        const [selectedComent, setSelectedComent]=useState< APIcoment|null>(null);
+        
+    //
+
 
     useEffect(() => {
 (async () => {
@@ -146,7 +165,27 @@ import {
 
   if (loading) return <p>Cargando posts...</p>;
 
+const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
+    const handleVerDetalle = async (entryComent:ApiList)=>{
+
+        setSelectedEntry(entryComent);
+        setIsModalOpen(true);
+        setLoadingModal(true);
+        setSelectedComent(null);
+
+        try {
+                const res = await fetch(`${API_URL}/posts/${entryComent.id}`);
+                if (!res.ok) throw new Error(`Error en API subs: ${res.statusText}`);
+                const jsonData = await res.json();
+                setSelectedComent(jsonData.data); // Guardar detalles del equipo
+            } catch (e: any) {
+                console.error("Error al cargar detalles del autor:", e);
+                // El modal mostrará un error
+            } finally {
+                setLoadingModal(false);
+            }
+    }
 
   return (
     <div>
@@ -210,9 +249,11 @@ import {
 
                           <TableBody className="bg-white divide-y divide-gray-200">
                               {posts.map((data)=>(
-                                  <TableRow key={data.id} className="hover:bg-gray-100 text-center">
-                                              <TableCell className="font-bold">{data.autor.email}</TableCell>
-                                              <TableCell className="overflow-hidden"><p>{data.contenido ? data.contenido.slice(0, 60) + '...':''}</p></TableCell>
+                                  <TableRow key={data.id} className="hover:bg-gray-100 text-center cursor-pointer"
+                                    onClick={()=>handleVerDetalle(data)}
+                                  >
+                                              <TableCell className="font-bold">{data.autor}</TableCell>
+                                              <TableCell className="overflow-hidden"><p>{data.comentario_extracto}</p></TableCell>
                                               <TableCell>{data.fecha_creacion}</TableCell>
                                               <TableCell className="place-items-center">
                                                 <p  className={`
@@ -228,15 +269,25 @@ import {
                                                   {buttons.map((btn)=>(
                                                       <React.Fragment key={btn.id}>
                                                           {btn.id===3 &&(
-                                                            <Button key={btn.id} className={`btn rounded-lg cursor-pointer size-12 hover:bg-rose-300/50 )}`}>
-                                                                <Image
-                                                                    className='scale-105'
-                                                                    src={btn.img}
-                                                                    alt={btn.button}
-                                                                    width={500}
-                                                                    height={500}
-                                                                />
-                                                            </Button>
+                                                            <div key={btn.id}
+                                                                onClick={(e) => {
+                                                                    e.stopPropagation();
+                                                                }}
+                                                            >
+                                                                <Button className={`btn rounded-lg cursor-pointer size-12 ${btn.id ===3? 'hover:bg-rose-300/50':'hidden'}`}
+                                                                    onClick={() => { 
+                                                                        
+                                                                    }}
+                                                                >
+                                                                    <Image
+                                                                        className='scale-110'
+                                                                        src={btn.img}
+                                                                        alt={btn.button}
+                                                                        width={500}
+                                                                        height={500}
+                                                                    />
+                                                                </Button>
+                                                            </div>
                                                           )}
                                                       </React.Fragment>
                                                   ))}
@@ -249,7 +300,71 @@ import {
 
               </section>
 
+            {/* --- El Modal autores --- */}
+            {isModalOpen && (
+                <DetalleSubs
+                    entryData={selectedEntry}
+                    userData={selectedComent}
+                    isLoading={loadingModal}
+                    state={isModalOpen===true ? true:false}
+                    onClose={() => setIsModalOpen(false)}
+                />
+            )}
       </div>        
     </div>
   )
+}
+
+
+interface ModalPropsSubs {
+    entryData: ApiList | null;
+    userData: APIcoment | null;
+    isLoading: boolean;
+    state:boolean;
+    onClose: () => void;
+}
+
+function DetalleSubs({ entryData, userData, isLoading, onClose, state }: ModalPropsSubs) {
+    if (!entryData) return null;
+
+    return (
+        <Modal state={state}>
+            <ContainModal className='bg-white text-black'>
+                <HeaderModal className="flex-none" onClose={onClose}>
+                    <div className="text-start">
+                        <h2 className="ml-5 title">Comentarios</h2>
+                    </div>
+                </HeaderModal>
+                <div > {/* Fondo oscuro */}
+                    <div > {/* Contenido del modal */}
+                        
+                        {/* 1. Información del autor */}
+                        <p><strong>Fecha de publicación:</strong> {entryData.fecha_creacion}</p>
+                        <p><strong>Comentario en estado:</strong> {entryData.estado}</p>
+                        <hr />
+
+                        {/* 2. Información del EQUIPO/JUGADOR (la que buscamos) */}
+                        {isLoading ? (
+                            <p>Cargando detalles del autor...</p>
+                        )  : userData ? (
+                            // Caso Equipo
+                            <div>
+                                <h3>Información del autor</h3>
+                                <p><strong>Nombre:</strong> {userData.autor.nombre}</p>
+                                <p><strong>Cedula:</strong> {userData.autor.cedula}</p>
+                                <p><strong>Email:</strong> {userData.autor.email}</p>
+                                <p><strong>Telefono:</strong> {userData.autor.telefono}</p>
+
+                                <div>
+                                    <p>{userData.comentario}</p>
+                                </div>
+                            </div>
+                        ) : (
+                            <p>No se pudieron cargar los detalles del autor.</p>
+                        )}
+                    </div>
+                </div>
+            </ContainModal>
+        </Modal>
+    );
 }
