@@ -8,9 +8,10 @@ export interface PropsModal{
     BTSecond:string;
     onClose:()=>void;
     onSumit?:()=>void;
+    disabled?: boolean;
 }
 
- export function FooterModal({BTmain, BTSecond, className ,onClose, onSumit,...props}:PropsModal){
+ export function FooterModal({BTmain, BTSecond, className ,onClose, onSumit, disabled,...props}:PropsModal){
     return(
         <div className={`ooter-modal flex justify-between ${className}`} {...props}>
 
@@ -18,7 +19,7 @@ export interface PropsModal{
                 {BTSecond}
             </Button>
 
-            <Button variant={'btn-primary'}  onClick={onSumit}>
+            <Button variant={''}  onClick={onSumit} disabled={disabled} className={disabled ? 'cursor-not-allowed btn-secondary invert-20' : 'btn-primary'}>
                 {BTmain}
             </Button>
         </div>

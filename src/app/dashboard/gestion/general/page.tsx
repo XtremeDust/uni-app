@@ -1,5 +1,5 @@
 'use client'
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import Image from 'next/image'
 import { 
   Input,
@@ -7,8 +7,52 @@ import {
   Select, 
   Table, 
   TableBody, TableCell, TableRow,
-  TableHead, TableHeaderCell
+  TableHead, TableHeaderCell,
+  HeaderModal,
+  ContainModal,
+  Modal
  } from '@/types/ui_components'
+
+
+ interface ApiActivityList {
+  id: number;
+  titulo: string;
+  tipo: 'cultural' | 'general';
+  estado: 'proximo' | 'finalizado' | 'activo';
+  fecha_actividad: string;
+  ubicacion: string;
+  extracto_contenido: string;
+  creador_nombre: string;
+}
+
+interface ApiCreator {
+  id: number;
+  nombre: string;
+  email: string;
+
+}
+
+interface ApiRegulation {
+  id: number;
+  titulo: string;
+  url_archivo: string;
+
+}
+
+
+interface ApiActivityDetail {
+  id: number;
+  titulo: string;
+  contenido_completo: string;
+  imagen_url: string;
+  tipo: 'cultural' | 'general';
+  estado: 'proximo' | 'finalizado' | 'activo';
+  fecha_actividad: string;
+  ubicacion: string;
+  creador: ApiCreator;
+  reglamentos: ApiRegulation[];
+  creado_hace: string;
+}
 
  const titleventos=[
     {id:1, titulo:"Evento"},
@@ -154,6 +198,56 @@ export default function page() {
         ...filteredEstate,
         ];
 
+    
+    const [activities, setActivities] = useState<ApiActivityList[]>([]);
+    const [loadingTable, setLoadingTable] = useState(true);
+    const [errorTable, setErrorTable] = useState<string | null>(null);
+    
+    const [isModalOpen, setIsModalOpen] = useState(false);
+    const [loadingModal, setLoadingModal] = useState(false);
+    const [selectedActivity, setSelectedActivity] = useState<ApiActivityDetail | null>(null);
+
+    useEffect(() => {
+        async function fetchActivities() {
+            setLoadingTable(true);
+            setErrorTable(null);
+            const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api';
+            try {
+                const res = await fetch(`${API_URL}/activities`);
+                if (!res.ok) throw new Error(`Error HTTP: ${res.statusText}`);
+                const jsonData = await res.json();
+                setActivities(jsonData.data);
+            } catch (e: any) {
+                setErrorTable(e.message || "Error al cargar actividades");
+            } finally {
+                setLoadingTable(false);
+            }
+        }
+        fetchActivities();
+    }, []);
+
+
+    const handleOpenModal = async (activityId: number) => {
+        setIsModalOpen(true);
+        setLoadingModal(true);
+        setSelectedActivity(null);
+
+        try {
+            const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api';
+            const res = await fetch(`${API_URL}/activities/${activityId}`);
+            if (!res.ok) throw new Error(`Error en API Activities: ${res.statusText}`);
+            const jsonData = await res.json();
+            setSelectedActivity(jsonData.data);
+        } catch (e: any) {
+            console.error("Error al cargar detalles de la actividad:", e);
+        } finally {
+            setLoadingModal(false);
+        }
+    };
+
+    if (loadingTable) return <p>Cargando actividades...</p>;
+    if (errorTable) return <p>Error: {errorTable}</p>;
+
   return (
     <div className="Case2 overflow-y-auto text-black">
             <section className="grid grid-cols-1 space-y-3 lg:space-y-0 lg:gap-6 mb-4">
@@ -242,35 +336,50 @@ export default function page() {
                         </TableHead>
 
                         <TableBody className="bg-white divide-y divide-gray-200">
-                            {eventos.map((data)=>(
+                            {activities.map((data)=>(
                                 <React.Fragment key={data.id}>
-                                    {data.tipo_evento !== 'Deportivo'  &&(
-                                        <TableRow  className="hover:bg-gray-100 text-center">
-                                            <TableCell className="font-bold">{data.nombre}</TableCell>
-                                            <TableCell>{data.tipo_evento}</TableCell>
-                                            <TableCell>{data.inscritos}</TableCell>
-                                            <TableCell>{data.fecha_inicio}</TableCell>
-                                            <TableCell className="place-items-center"><p  className={`rounded-full p-2 w-40 font-semibold text-gray-950 ${data.estado==='Activo'? ' bg-green-400/50 text-green-800' : (data.estado==='Finalizado'? 'bg-red-400/50 text-red-800': 'bg-yellow-400/50 text-yellow-800')}`}>{data.estado}</p></TableCell>
+                                        <TableRow  className="hover:bg-gray-100 text-center" onClick={() => handleOpenModal(data.id)}>
+                                            <TableCell className="font-bold">{data.titulo}</TableCell>
+                                            <TableCell>{data.tipo}</TableCell>
+                                            <TableCell>{data.fecha_actividad}</TableCell>
+                                            <TableCell>{data.ubicacion}</TableCell>
+                                            <TableCell className="place-items-center"><p  className={`rounded-full p-2 w-40 font-semibold text-gray-950 ${data.estado==='activo'? ' bg-green-100 text-green-800' : (data.estado==='proximo'? 'bg-blue-100 text-blue-800': 'bg-purple-100 text-purple-800')}`}>{data.estado}</p></TableCell>
                                             <TableCell className="space-x-2 flex justify-evenly text-white">
                                                 {buttons.map((btn)=>(
-                                                    <Button key={btn.id} className={`btn rounded-lg cursor-pointer size-14 ${btn.id ===1? 'hover:bg-unimar/10' : (btn.id===2? 'hover:bg-gray-300/50': 'hover:bg-rose-300/50' )}`}>
-                                                        <Image
-                                                            src={btn.img}
-                                                            alt={btn.button}
-                                                            width={500}
-                                                            height={500}
-                                                        />
-                                                    </Button>
+                                                    <div key={btn.id}
+                                                        onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        }}
+                                                    >
+                                                        <Button className={`btn rounded-lg cursor-pointer size-12 ${btn.id ===1? 'hover:bg-unimar/10' : (btn.id===2? 'hover:bg-gray-300/50': 'hover:bg-rose-300/50' )}`}
+                                                            onClick={() => { 
+                                                            
+                                                            }}
+                                                        >
+                                                            <Image
+                                                                className='scale-110'
+                                                                src={btn.img}
+                                                                alt={btn.button}
+                                                                width={500}
+                                                                height={500}
+                                                            />
+                                                        </Button>
+                                                    </div>
                                                 ))}
                                             </TableCell>
                                         </TableRow>
-
-                                    )}
                                 </React.Fragment>
                             ))}
                         </TableBody>
                     </Table>  
                     
+                    {isModalOpen && (
+                        <ActivityDetailModal
+                            activityData={selectedActivity}
+                            isLoading={loadingModal}
+                            onClose={() => setIsModalOpen(false)}
+                        />
+                    )}
 
                 </div>
 
@@ -279,4 +388,57 @@ export default function page() {
 
     </div>  
   )
+}
+
+interface ModalProps {
+    activityData: ApiActivityDetail | null;
+    isLoading: boolean;
+    onClose: () => void;
+}
+
+function ActivityDetailModal({ activityData, isLoading, onClose }: ModalProps) {
+    return (
+        <Modal state={true}> {/* Asumo tu componente Modal */}
+            <ContainModal className='bg-white text-black'>
+                <HeaderModal onClose={onClose}>
+                    Detalles de la Actividad
+                </HeaderModal>
+                <div>
+                    {isLoading ? (
+                        <p>Cargando detalles...</p>
+                    ) : activityData ? (
+                        <div>
+                            <h2>{activityData.titulo}</h2>
+                            <p><strong>Tipo:</strong> {activityData.tipo}</p>
+                            <p><strong>Estado:</strong> {activityData.estado}</p>
+                            <p><strong>Fecha:</strong> {activityData.fecha_actividad}</p>
+                            <p><strong>Ubicación:</strong> {activityData.ubicacion}</p>
+                            
+                            <hr className="my-2" />
+                            <p><strong>Descripción:</strong></p>
+                            <p>{activityData.contenido_completo}</p>
+                            
+                            <hr className="my-2" />
+                            <h3>Creador</h3>
+                            <p>{activityData.creador.nombre} ({activityData.creador.email})</p>
+                            
+                            <hr className="my-2" />
+                            <h3>Reglamentos</h3>
+                            <ul>
+                                {activityData.reglamentos.length > 0 ? (
+                                    activityData.reglamentos.map(reg => (
+                                        <li key={reg.id}>{reg.titulo}</li>
+                                    ))
+                                ) : (
+                                    <li>No hay reglamentos asociados.</li>
+                                )}
+                            </ul>
+                        </div>
+                    ) : (
+                        <p>No se pudieron cargar los detalles.</p>
+                    )}
+                </div>
+            </ContainModal>
+        </Modal>
+    );
 }
