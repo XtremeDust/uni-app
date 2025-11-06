@@ -9,12 +9,13 @@ import {
   TableBody, TableCell, TableRow,
   TableHead, TableHeaderCell,
   InputGroup,
+  TextArea,
   Modal,
   ContainModal,
   HeaderModal,
   FooterModal
  } from '@/types/ui_components'
-
+import TeamModal from '@/components/sections_Dashboard/inscriptions/team_modal';
 
 
 //tabla usuarios por equipo api/teams
@@ -43,7 +44,7 @@ interface ApiUsers {
 interface ApiSub{
     id_suscripcion:number;
     email:string;
-    suscriptor:ApiUser;
+    suscriptor: ApiUser | null;
     fecha_suscripcion:string;
     hace_tiempo:string;
     
@@ -105,7 +106,7 @@ export default function page() {
 
     const category = [{id: 2, label: 'Masculina'}, {id: 3, label: 'Femenina'}, {id:4, label:'Mixta'}];
 
-    /// funcional sin hook (maldito mrd no sirve) <Filtro de Categorias>
+        const [isTeamModalOpen, setIsTeamModalOpen] = useState(false);
 
         const [isCat, setSelectCat] = useState<string|null>('Todos'); 
         const [isOpenCat, setisCat] = useState(false);
@@ -116,8 +117,7 @@ export default function page() {
         };
     
         const cat=[{id: 1, label: 'Masculina'}, {id: 2, label: 'Femenina'}, {id:3, label:'Mixta'}]
-    
-    
+        
         const filteredCat = cat
         .filter(cat => cat.label !== isCat)
         .map(cat => ({
@@ -130,7 +130,6 @@ export default function page() {
         ...filteredCat,
         ];
 
-    ///filtro estados   
         const [isEst, setSelectEst] = useState<string|null>('Todos'); 
         const [isOpenEst, setisEst] = useState(false);     
 
@@ -182,12 +181,20 @@ export default function page() {
         // modal
             const [isModalOpen, setIsModalOpen] = useState(false);
             const [loadingModal, setLoadingModal] = useState(false);
+
+            //modal team
             const [selectedEntry, setSelectedEntry] = useState<ApiTeam | null>(null);
             const [selectedTeam, setSelectedTeam] = useState<ApiTeam | null>(null);
 
+            //modal sub
             const [isModalOpenSub, setIsModalOpenSub] =useState(false);
             const [selectedEntrySub, setSelectedEntrySub ]=useState<ApiSub|null>(null);
             const [selectedSub, setSelectedSub]=useState< ApiSub|null>(null);
+
+            //modal estado
+            const [isStateModalOpen, setIsStateModalOpen] = useState(false);
+            const [selectedEntryForState, setSelectedEntryForState] = useState<ApiTeam | null>(null);
+            const [isSavingState, setIsSavingState] = useState(false); 
         //
         
         useEffect(() => {
@@ -235,37 +242,29 @@ export default function page() {
         if (loading) return <p>Cargando datos...</p>;
         if (error) return <p>Error al cargar: {error}</p>;
 
-    
+    // --- Función para abrir el MODAL y buscar detalles ---
     const API_URL = process.env.NEXT_PUBLIC_API_URL;
-        // --- Función para abrir el MODAL y buscar detalles ---
     const handleVerDetalles = async (entry: ApiTeam) => {
-        // 1. Guardar datos que ya tenemos (de la inscripción)
+        
         setSelectedEntry(entry);
         setIsModalOpen(true);
         setLoadingModal(true);
-        setSelectedTeam(null); // Limpiar datos de equipo anterior
+        setSelectedTeam(null);
 
-        // 2. Determinar si es un equipo o un usuario individual
         if (entry.team_id_for_modal) {
-            // Es un equipo, buscar en /api/teams
             try {
                 const res = await fetch(`${API_URL}/teams/${entry.team_id_for_modal}`);
                 if (!res.ok) throw new Error(`Error en API teams: ${res.statusText}`);
                 const jsonData = await res.json();
-                setSelectedTeam(jsonData.data); // Guardar detalles del equipo
+                setSelectedTeam(jsonData.data); 
             } catch (e: any) {
                 console.error("Error al cargar detalles del equipo:", e);
-                // El modal mostrará un error
             } finally {
                 setLoadingModal(false);
             }
         } else if (entry.user_id_for_modal) {
-            // Es un individual. No necesitamos buscar en /api/teams.
-            // (Podríamos buscar en /api/users/{id} si quisiéramos más detalles)
-            // Por ahora, solo indicamos que la carga terminó.
             setLoadingModal(false);
         } else {
-            // No hay ID, solo cerrar
             setLoadingModal(false);
         }
     };
@@ -289,7 +288,50 @@ export default function page() {
                 setLoadingModal(false);
             }
     }
-        
+    
+    const handleChangeStateClick = (entry: ApiTeam) => {
+    setSelectedEntryForState(entry);
+    setIsStateModalOpen(true);
+    };
+
+    const handleSaveState = async (newState: string) => {
+    if (!selectedEntryForState) return;
+
+    setIsSavingState(true);
+
+    try {
+        const res = await fetch(`${API_URL}/discipline-entries/${selectedEntryForState.id}/estado`, {
+        method: "PATCH",
+        headers: { 
+            "Content-Type": "application/json",
+            "Accept": "application/json",
+            // 'Authorization': `Bearer ${token}` // <-- No olvides la autenticación
+        },
+        body: JSON.stringify({ state: newState }),
+        });
+
+        if (!res.ok) {
+            const errData = await res.json();
+            throw new Error(errData.message || "Error al actualizar el estado");
+        }
+
+        alert("Estado actualizado correctamente "); //✅
+        setIsStateModalOpen(false);
+
+        // 🔁 Refresca la lista localmente sin recargar toda la página
+        setTeams((prevTeams) =>
+        prevTeams.map((t) =>
+            t.id === selectedEntryForState.id ? { ...t, estado: newState as any } : t
+        )
+        );
+
+    } catch (error: any) {
+        console.error(error);
+        alert(error.message || "Error al actualizar el estado");
+    } finally {
+        setIsSavingState(false);
+    }
+    };
 
   return (
     <div className="Case2 overflow-y-auto text-black">
@@ -299,7 +341,9 @@ export default function page() {
                 <div className="bg-white p-6 rounded-lg shadow col-span-2">
                     <div className="flex justify-between mb-6">
                         <h3 className="text-2xl font-bold">Equipos Inscritos</h3>
-                        <Button className="bg-unimar flex items-center gap-2 hover:bg-unimar/90 cursor-pointer h-10 text-white rounded-2xl px-4 py-7 md:py-0">
+                        <Button className="bg-unimar flex items-center gap-2 hover:bg-unimar/90 cursor-pointer h-10 text-white rounded-2xl px-4 py-7 md:py-0"
+                            onClick={() => setIsTeamModalOpen(true)}
+                        >
                             <Image
                                 className="size-5"
                                 src={'/mas.png'}
@@ -397,12 +441,23 @@ export default function page() {
                                     <TableCell>{entry.disciplina}</TableCell>
                                     <TableCell>{entry.categoria}</TableCell>
                                     <TableCell>{entry.integrantes_total}</TableCell>
-                                    <TableCell  className="place-items-center">
-                                        <p  className={`items-center rounded-full px-4 py-2 font-semibold text-gray-950
+                                    <TableCell onClick={(e)=>{
+                                        e.stopPropagation()
+                                    }}
+                                         className="place-items-center">
+                                        <Button onClick={()=>{
+                                            if (entry.estado === 'Pendiente') {
+                                                handleChangeStateClick(entry);
+                                            } else {
+                                                alert("Solo se pueden modificar las inscripciones en estado 'Pendiente'.");
+                                            }
+                                        }
+                                        }
+                                         className={`items-center rounded-full px-4 py-2 font-semibold text-gray-950
                                              ${entry.estado==='Aceptado'? ' bg-green-200/65 text-green-800' :
                                             (entry.estado==='Rechazado'? 'bg-red-200/65 text-red-800': 'bg-yellow-200/65 text-yellow-800')}`}>
                                             {entry.estado}
-                                          </p>
+                                          </Button>
                                     </TableCell>
                                     <TableCell className="space-x-2 flex justify-evenly text-white">
                                         {buttons.map((btn)=>(
@@ -447,6 +502,17 @@ export default function page() {
                 />
             )}
 
+            {/* --- El Modal de estado --- */}
+            {isStateModalOpen && selectedEntryForState && (
+            <ModalCambioEstado
+                teamName={selectedEntryForState.nombre}
+                currentState={selectedEntryForState.estado}
+                state={isStateModalOpen}
+                isLoading={isSavingState}
+                onClose={() => setIsStateModalOpen(false)}
+                onSave={handleSaveState}
+            />
+            )}
 
             <section className="USERS INSRIPTION     grid grid-cols-1 space-y-3 lg:space-y-0 lg:gap-6 mb-4">
 
@@ -572,7 +638,13 @@ export default function page() {
                                 onClick={() => handleVerDetallesSub(entrySub)}
                                 >
                                 
-                                    <TableCell className="font-bold">{entrySub.suscriptor.email}</TableCell>
+                                    <TableCell className="font-bold">
+                                    {entrySub.suscriptor ? (
+                                        <span>{entrySub.suscriptor.nombre || entrySub.email}</span>
+                                    ) : (
+                                        <span>{entrySub.email}</span>
+                                    )}
+                                    </TableCell>
                                     <TableCell>{entrySub.fecha_suscripcion}</TableCell>
                                     <TableCell>{entrySub.hace_tiempo}</TableCell>
                                     <TableCell className="space-x-2 flex justify-evenly text-white">
@@ -619,6 +691,15 @@ export default function page() {
                 />
             )}
 
+             {/* --- El Modal inscripbir --- */}
+            {isTeamModalOpen && (       
+                <Modal state={isTeamModalOpen}>
+                    <TeamModal 
+                        onCloseExternal={() => setIsTeamModalOpen(false)}
+                    />
+                </Modal>         
+            )}
+
     </div>
   )
 }
@@ -648,18 +729,14 @@ function DetalleEquipoModal({ entryData, teamData, isLoading, onClose, state }: 
                 <div > {/* Fondo oscuro */}
                     <div > {/* Contenido del modal */}
                         
-                       
                         
-                       
-                        
-                        {/* 1. Información de la INSCRIPCIÓN (la que ya teníamos) */}
                         <p><strong>Torneo:</strong> {entryData.torneo}</p>
                         <p><strong>Deporte:</strong> {entryData.disciplina}</p>
                         <p><strong>Categoría:</strong> {entryData.categoria}</p>
                         <p><strong>Estado:</strong> {entryData.estado}</p>
                         <hr />
 
-                        {/* 2. Información del EQUIPO/JUGADOR (la que buscamos) */}
+                       
                         {isLoading ? (
                             <p>Cargando detalles del competidor...</p>
                         ) : esIndividual ? (
@@ -667,7 +744,7 @@ function DetalleEquipoModal({ entryData, teamData, isLoading, onClose, state }: 
                             <div>
                                 <h3>Jugador Individual</h3>
                                 <p><strong>Nombre:</strong> {entryData.nombre}</p>
-                                {/* Aquí podrías mostrar más detalles si el API de 'user' se llamara */}
+                                
                             </div>
                         ) : teamData ? (
                             // Caso Equipo
@@ -676,8 +753,7 @@ function DetalleEquipoModal({ entryData, teamData, isLoading, onClose, state }: 
                                 <p><strong>Nombre:</strong> {teamData.nombre}</p>
                                 <p><strong>Capitán:</strong> {teamData.captain?.nombre || 'No asignado'}</p>
                                 <p><strong>Color:</strong> {teamData.color}</p>
-                                <p><strong>Imagen</strong>{teamData.logo}</p>
-                                {/* <img src={teamData.logo} alt="Logo" /> */}
+                                <p><strong>Imagen</strong>{teamData.logo}</p>                                
                                 <h4>Integrantes ({teamData.integrantes_total}):</h4>
                                 <ul>
                                     {teamData.integrantes_data.map(member => (
@@ -696,6 +772,8 @@ function DetalleEquipoModal({ entryData, teamData, isLoading, onClose, state }: 
         </Modal>
     );
 }
+
+
 
 
 interface ModalPropsSubs {
@@ -717,19 +795,16 @@ function DetalleSubs({ entryDataSub, userData, isLoading, onClose, state }: Moda
                         <h2 className="ml-5 title">Detalles del Suscriptor</h2>
                     </div>
                 </HeaderModal>
-                <div > {/* Fondo oscuro */}
-                    <div > {/* Contenido del modal */}
+                <div >
+                    <div >
                         
-                        {/* 1. Información del suscriptor */}
                         <p><strong>Fecha de suscripción:</strong> {entryDataSub.fecha_suscripcion}</p>
                         <p><strong>Suscrito hace:</strong> {entryDataSub.hace_tiempo}</p>
                         <hr />
 
-                        {/* 2. Información del EQUIPO/JUGADOR (la que buscamos) */}
                         {isLoading ? (
                             <p>Cargando detalles del suscriptor...</p>
-                        )  : userData ? (
-                            // Caso Equipo
+                        )  : userData && userData.suscriptor ? (
                             <div>
                                 <h3>Información del suscriptor</h3>
                                 <p><strong>Nombre:</strong> {userData.suscriptor.nombre}</p>
@@ -737,6 +812,14 @@ function DetalleSubs({ entryDataSub, userData, isLoading, onClose, state }: Moda
                                 <p><strong>Email:</strong> {userData.suscriptor.email}</p>
                                 <p><strong>Telefono:</strong> {userData.suscriptor.telefono}</p>
                             </div>
+                        ): userData ? (
+                            // --- CORRECCIÓN: Caso Usuario ANÓNIMO ---
+                            <div>
+                                <h3>Información del Usuario</h3>
+                                <p><strong>Email:</strong> {userData.email}</p>
+                                <p>Esta suscripción pertenece a un visitante anónimo y no está vinculada a una cuenta de usuario registrada.</p>
+                            </div>
+
                         ) : (
                             <p>No se pudieron cargar los detalles del suscriptor.</p>
                         )}
@@ -745,4 +828,86 @@ function DetalleSubs({ entryDataSub, userData, isLoading, onClose, state }: Moda
             </ContainModal>
         </Modal>
     );
+}
+
+
+
+
+
+interface ModalCambioEstadoProps {
+  teamName: string;
+  currentState: 'Aceptado' | 'Rechazado' | 'Pendiente';
+  state: boolean;
+  onClose: () => void;
+  onSave: (newState: string) => void;
+  isLoading: boolean;
+}
+
+function ModalCambioEstado({
+  teamName,
+  currentState,
+  state,
+  onClose,
+  onSave,
+  isLoading,
+}: ModalCambioEstadoProps) {
+
+  const [newState, setNewState] = useState(currentState);
+  const [isSelectOpen, setIsSelectOpen] = useState(false);
+  
+  const options = [
+    { id: 1, label: "Aceptado" },
+    { id: 2, label: "Rechazado" },
+  ];
+
+  const filteredOptions = options.filter(opt => opt.label !== newState);
+
+    const handleLocalSelect = (id: number, label: string) => {
+        setNewState(label as 'Aceptado' | 'Rechazado');
+        setIsSelectOpen(false);
+    };
+
+  return (
+    <Modal state={state}>
+      <ContainModal className="w-full max-w-md bg-white rounded-2xl shadow-lg">
+        <HeaderModal onClose={onClose}>
+            <h2 className="text-xl font-bold text-gray-800">Cambiar Estado</h2>
+        </HeaderModal>
+        
+        <div className="p-6">
+          <p className="mb-4 text-gray-700">
+            <strong>Equipo:</strong> {teamName}
+          </p>
+
+          <InputGroup label="Nuevo Estado" For="estado" className='mb-3'>
+            <Select
+                className="bg-gray-50 focus:ring-[1px] focus:ring-unimar focus:outline-none ring ring-gray-300 shadow-sm rounded-lg w-full pl-3 pr-3 py-3"
+                options={filteredOptions}
+                currentValue={newState}
+                isOpen={isSelectOpen}       
+                setOpen={setIsSelectOpen}   
+                onSelect={handleLocalSelect}
+                placeholder="Seleccionar estado"
+            />
+          </InputGroup> 
+
+          {newState==='Rechazado' &&(
+            <div>
+                <InputGroup label="Deje un Comentario" For="Comentario">
+                     <TextArea id="Comentario" className="h-[8rem] input " placeholder="Escribe tu comentario aquí..."/>       
+                </InputGroup> 
+            </div>
+          )}
+        </div>
+
+        <FooterModal 
+            BTmain="Guardar Cambios"
+            BTSecond="Cancelar"
+            onClose={onClose}
+            onSumit={() => onSave(newState)}
+            disabled={isLoading} 
+        />
+      </ContainModal>
+    </Modal>
+  );
 }

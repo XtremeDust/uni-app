@@ -15,6 +15,8 @@ interface ApiDiscipline {
   categoria: string;
   modo_juego: string;
   nombre_deporte: string;
+  min_participantes:number;
+  max_participantes:number;
 }
 interface ApiTournament {
   id: number;
@@ -49,30 +51,31 @@ const [isSept, setStep] = useState(1);
 
     
     const [teamData, setTeamData] = useState({
-        nombre: "",
-        madrina: "",
-        color: "",
-        delegadoCorreo: "",
-        delegadoTelefono: "",
-        logo: null as File | null,
-        integrantes: [] as { dorsal: string; correo: string; cedula: string }[],
-    });
+            nombre: "",
+            madrina: "",
+            color: "",
+            logo: null as File | null,
+            
+            integrantes: [] as { dorsal: string; correo: string; cedula: string; telefono: string; isCaptain?: boolean }[],
 
-    const [nuevo, setNuevo] = useState({ dorsal: "",  correo: "", cedula: "" });
+        });
+
+    const [integranteError, setIntegranteError] = useState({ dorsal: "", correo: "", cedula: "", telefono: "" });
+    const [nuevo, setNuevo] = useState({ dorsal: "",  correo: "", cedula: "", telefono:"" });
     const [editIndex, setEditIndex] = useState<number | null>(null); 
-    const [maxIntegrantes, setMaxIntegrantes] = useState(12);
+    const [captainIndex, setCaptainIndex] = useState<number | null>(null);
+
     
     const [errors, setErrors] = useState({
-        nombre: "",
-        madrina: "",
-        color: "",
-        delegadoCorreo: "",
-        delegadoTelefono: "",
-        logo: "",
-        integrantes: [] as { dorsal?: string; correo?: string; cedula?: string }[],
-    });
-
+            nombre: "",
+            madrina: "",
+            color: "",
+            logo: "",
     
+            integrantes: [] as { dorsal: string; correo: string; cedula: string; telefono: string; isCaptain?: boolean }[],
+
+        });
+
     const setVariant = {
         entre: { x: 50, opacity: 0, trasition: { duration: 0.5 } },
         center: { x: 0, opacity: 1, trasition: { duration: 0.5 } },
@@ -94,8 +97,6 @@ const [isSept, setStep] = useState(1);
         return tournament.disciplinas.filter(d => d.nombre_deporte === selectedSportName);
     }, [tournament, selectedSportName]); 
 
-
-    
     useEffect(() => {
         async function fetchCurrentTournament() {
             setLoading(true);
@@ -117,19 +118,6 @@ const [isSept, setStep] = useState(1);
         
         fetchCurrentTournament();
     }, []);
-
-    
-    useEffect(() => {
-        const limits: { [key: string]: number } = {
-            'futbol sala': 12, 
-            'basquet': 10,
-            'voleibol': 8,
-            'atletismo': 6,
-        };
-        const deporteKey = selectedDiscipline?.nombre_deporte.toLowerCase() || ""; 
-        setMaxIntegrantes(limits[deporteKey] || 12); 
-    }, [selectedDiscipline]); 
-
     
     useEffect(()=>{
         function handleOutClick(event: globalThis.MouseEvent) {
@@ -163,17 +151,19 @@ const [isSept, setStep] = useState(1);
 
         setTeamData({
             nombre: "", madrina: "", color: "",
-            delegadoCorreo: "", delegadoTelefono: "",
             logo: null, integrantes: []
         });
         setErrors({
             nombre: "", madrina: "", color: "",
-            delegadoCorreo: "", delegadoTelefono: "",
             logo: "", integrantes: []
         });
+
+        setNuevo({ dorsal: "", correo: "", cedula: "", telefono: "" });
+        setIntegranteError({ dorsal: "", correo: "", cedula: "", telefono: "" });
+        setEditIndex(null);
+        setCaptainIndex(null);
     };
 
-    
     const handleSelectD = (sportName: string) => {
         if (selectedSportName === sportName) {
             
@@ -194,7 +184,6 @@ const [isSept, setStep] = useState(1);
         setMCat(false);                    
     };
 
-
     const canAdvanceStep1 = selectedSportName !== null && selectedDiscipline !== null;
 
     const handleNextClick = () => {
@@ -213,39 +202,158 @@ const [isSept, setStep] = useState(1);
              setErrors(prev => ({ ...prev, [field]: "" }));
         }
     };
-    
-    const handleAddIntegrante = () => {
-        if (!nuevo.dorsal || !nuevo.correo || !nuevo.cedula) {
-            alert("Completa todos los campos del integrante.");
-            return;
+
+
+    const [minIntegrantes, maxIntegrantes] = useMemo(() => {
+        if (!selectedDiscipline) {
+            
+            return [1, 12];
         }
+        
+        return [
+            selectedDiscipline.min_participantes, 
+            selectedDiscipline.max_participantes
+        ];
+    }, [selectedDiscipline]); 
+
+    const validateIntegrante = (
+        integrante: { dorsal: string, correo: string, cedula: string, telefono: string },
+        currentIntegrantes: { dorsal: string, correo: string, cedula: string, telefono: string }[],
+        currentIndex: number | null
+    ) => {
+        const newErrors = { dorsal: "", correo: "", cedula: "", telefono: "" };
+        let isValid = true;
+        
+        const dorsal = integrante.dorsal.trim();
+        const correo = integrante.correo.trim().toLowerCase();
+        const cedula = integrante.cedula.trim(); 
+        const telefono = integrante.telefono.trim();
+        
+        if (!/^[0-9]+$/.test(dorsal)) {
+            newErrors.dorsal = "El dorsal debe ser solo números.";
+            isValid = false;
+        }
+
+        if (!/^[0-9]{7,9}$/.test(cedula)) {
+            newErrors.cedula = "Debe tener 7-9 dígitos.";
+            isValid = false;
+        }
+        
+        if (!/^[0-9]{10,11}$/.test(telefono)) {
+            newErrors.telefono = "Teléfono inválido (10 u 11 dígitos).";
+            isValid = false;
+        }
+
+        if (!/^[^@\s]+@unimar\.edu\.ve$/i.test(correo)) {
+            newErrors.correo = "Debe ser @unimar.edu.ve";
+            isValid = false;
+        }
+
+        
+        if (isValid) {
+            const nuevaCedulaNormalizada = `V-${cedula}`;
+            currentIntegrantes.forEach((member, index) => {
+
+                if (currentIndex !== null && index === currentIndex) {
+                    return;
+                }
+                
+                if (member.dorsal === dorsal) {
+                    newErrors.dorsal = "Dorsal ya asignado.";
+                    isValid = false;
+                }
+                if (member.cedula === nuevaCedulaNormalizada) { 
+                    newErrors.cedula = "La Cédula ya está en la lista.";
+                    isValid = false;
+                }
+                if (member.correo === correo) {
+                    newErrors.correo = "El Correo ya está en la lista.";
+                    isValid = false;
+                }
+                if (member.telefono === telefono) {
+                    newErrors.telefono = "El Telefono ya está en la lista.";
+                    isValid = false;
+                }
+            });
+        }
+
+        setIntegranteError(newErrors);
+        return isValid;
+    };
+
+    const handleSetCaptain = (index: number) => {
+        setTeamData(prev => ({
+            ...prev,
+            integrantes: prev.integrantes.map((int, i) => ({
+            ...int,
+            isCaptain: i === index, // solo uno tiene true
+            }))
+        }));
+        setCaptainIndex(index);
+    };
+
+
+    const handleAddIntegrante = () => {
+        if (!validateIntegrante(nuevo, teamData.integrantes, editIndex)) {
+            return; 
+        }
+       
+        const integranteNormalizado = {
+        dorsal: nuevo.dorsal.trim(),
+        correo: nuevo.correo.trim().toLowerCase(),
+        cedula: `V-${nuevo.cedula.trim()}`,
+        telefono: nuevo.telefono.trim(),
+        isCaptain: false,
+        };
+
         if (editIndex !== null) {
+        
             const nuevosIntegrantes = [...teamData.integrantes];
-            nuevosIntegrantes[editIndex] = nuevo;
+            nuevosIntegrantes[editIndex] = integranteNormalizado; 
             setTeamData({ ...teamData, integrantes: nuevosIntegrantes });
             setEditIndex(null);
         } else {
+        
             if (teamData.integrantes.length >= maxIntegrantes) {
-                alert(`Solo se permiten ${maxIntegrantes} integrantes para este deporte.`);
+                alert(`Solo se permiten un máximo de ${maxIntegrantes} integrantes.`);
                 return;
             }
             setTeamData({
                 ...teamData,
-                integrantes: [...teamData.integrantes, nuevo],
+                integrantes: [...teamData.integrantes, integranteNormalizado], 
             });
         }
-        setNuevo({ dorsal: "", correo: "", cedula: "" });
+        
+        setNuevo({ dorsal: "", correo: "", cedula: "", telefono: "" });
+        setIntegranteError({ dorsal: "", correo: "", cedula: "", telefono:"" });
     };
 
     const handleRemoveIntegrante = (index:number) => {
+
+    if (index === captainIndex) {
+        setCaptainIndex(null);
+    }
+
+    else if (captainIndex !== null && index < captainIndex) {
+        setCaptainIndex(captainIndex - 1);
+    }
+
         const nuevos = teamData.integrantes.filter((_, i) => i !== index);
         setTeamData({ ...teamData, integrantes: nuevos });
     };
 
     const handleEditIntegrante = (index:number) => {
         setEditIndex(index);
-        setNuevo(teamData.integrantes[index]);
-    };
+        const integranteAEditar = teamData.integrantes[index];
+        
+        setNuevo({
+            dorsal: integranteAEditar.dorsal,
+            correo: integranteAEditar.correo,
+            telefono: integranteAEditar.telefono,
+        
+            cedula: integranteAEditar.cedula.replace("V-", "") 
+        });
+};
 
     const validateStep3 = () => {
         const newErrors: any = { integrantes: [] };
@@ -253,30 +361,51 @@ const [isSept, setStep] = useState(1);
         
         if (!teamData.nombre) { newErrors.nombre = "El nombre del equipo es obligatorio."; valid = false; }
         if (!teamData.color) { newErrors.color = "Debes indicar el color del uniforme."; valid = false; }
-        if (!teamData.delegadoCorreo.match(/^[^@]+@[^@]+\.[^@]+$/)) { newErrors.delegadoCorreo = "Correo inválido."; valid = false; }
-        if (!teamData.delegadoTelefono.match(/^[0-9]{10,}$/)) { newErrors.delegadoTelefono = "Número inválido."; valid = false; }
+        if (!teamData.madrina) { newErrors.madrina = "Debes indicar el nombre de la madrina."; valid = false; }
         if (!teamData.logo) { newErrors.logo = "Debes subir el logo del equipo."; valid = false; }
-        if (teamData.integrantes.length === 0) { alert("Debes añadir al menos un integrante."); valid = false; }
+        
+        if (captainIndex === null) {
+            alert("Debes seleccionar un capitán/delegado de la lista.");
+            valid = false;
+        }
+        
+        if (teamData.integrantes.length < minIntegrantes) { 
+            alert(`Debes añadir al menos ${minIntegrantes} integrantes.`); 
+            valid = false; 
+        }
+        if (teamData.integrantes.length > maxIntegrantes) { 
+            alert(`No puedes exceder el máximo de ${maxIntegrantes} integrantes.`); 
+            valid = false; 
+        }
         
         setErrors(newErrors);
         return valid;
     };
 
+    //const correosIntegrantes = teamData.integrantes.map(int => int.correo); 
+
     const handleFinalSubmit = async () => {
         if (!validateStep3()) {
-            return; 
+            return;
         }
         
         setLoading(true); 
         
+        const captain = teamData.integrantes.find(int => int.isCaptain);
+            if (!captain) {
+            alert("Debes seleccionar un capitán o delegado antes de continuar.");
+            return;
+        }
+
+
         const data = new FormData();
         data.append('discipline_id', selectedDiscipline!.id.toString());
         data.append('team_name', teamData.nombre);
         data.append('madrina', teamData.madrina);
         data.append('color', teamData.color);
-        data.append('delegadoCorreo', teamData.delegadoCorreo);
-        data.append('delegadoTelefono', teamData.delegadoTelefono);
-        data.append('logo', teamData.logo!);
+        if (teamData.logo) data.append('logo', teamData.logo);
+        data.append('delegado_correo', captain.correo);
+        data.append('delegado_telefono', captain.telefono);
         data.append('integrantes', JSON.stringify(teamData.integrantes));
 
         console.log("Datos listos para enviar al backend:", Object.fromEntries(data.entries()));
@@ -286,6 +415,7 @@ const [isSept, setStep] = useState(1);
             const res = await fetch(`${API_URL}/discipline-entries`, {
                 method: 'POST',
                 body: data,
+                // headers: { 'Authorization': `Bearer TU_TOKEN_AQUI` }
             });
 
             if (!res.ok) {
@@ -325,10 +455,9 @@ const [isSept, setStep] = useState(1);
             </ContainModal>
         );
     }
-    
 
   return (
-        <ContainModal className={`grid-flow-row-dense md:flex md:flex-col text-black ${ isSept===1 ? 'w-[95%] h-[82%] md:w-[80%] md:h-[70%] lg:w-[75%] lg:h-[70%] xl:w-[60%] xl:h-[80%] 2xl:w-[50%] 2xl:h-[70%]':(isSept===2 ? 'w-[95%] h-[89%] md:w-[85%] md:h-[90%] lg:w-[75%] lg:h-[85%] xl:w-[55%] xl:h-[85%] 2xl:w-[50%] 2xl:h-[88%]':'size-[95%] md:h-[95%]  xl:w-[35%]') }  space-y-3 overflow-y-auto bg-gray-200`}>
+        <ContainModal className={`grid-flow-row-dense md:flex md:flex-col text-black ${ isSept===1 ? 'w-[95%] h-[80%] sm:h-[75%] md:w-[80%] md:h-[70%] lg:w-[75%] lg:h-[70%] xl:w-[60%] xl:h-[72%] 2xl:w-[50%] 2xl:h-[70%]':(isSept===2 ? 'w-[95%] h-[94%] sm:w-[95%] sm:h-[88%] md:w-[90%] md:h-[75%] lg:w-[65%] lg:h-[78%] xl:w-[55%] xl:h-[77%] 2xl:w-[45%] 2xl:h-[77%]':'size-[95%] md:w-[70%] md:h-[95%]  xl:w-[35%]') }  space-y-3 overflow-y-auto bg-gray-200`}>
             <HeaderModal className="flex-none" onClose={handleCloseModal}>
                 <div className="text-start">
                     <h2 className="ml-5 title">Formulario de Inscripción</h2>
@@ -455,7 +584,7 @@ const [isSept, setStep] = useState(1);
                                         </div>
                                         </InputGroup>
 
-                                        <div className=" border-l-4 border-yellow-600 col-span-2 p-4 bg-yellow-100 text-yellow-800 rounded-xl mb-3">
+                                        <div className=" border-l-4 border-blue-600 col-span-2 p-4 bg-blue-100 text-blue-800 rounded-xl mb-3">
                                             <span>
                                                 La fecha límite de inscripción: {tournament?.inicio ?? '...'} {/* <-- Muestra fecha real (o una fecha de 'cierre_inscripcion' si la añades a la API) */}
                                             </span>
@@ -476,7 +605,6 @@ const [isSept, setStep] = useState(1);
                                         <div className="flex flex-col place-items-start mt-3 ml-5">
                                             <div className="text-start">
                                                 <h3 className="text-[1.5rem] font-bold ">{tournament?.nombre}</h3>
-                                                <p className="text-gray-500">{tournament?.descripcion}</p>
                                             </div>
                                             <p className="text-gray-500">"Uniendo comunidades a través del deporte"</p>
                                         </div>
@@ -495,8 +623,8 @@ const [isSept, setStep] = useState(1);
                                                     <div className=" items-center">
                                                         <h3 className="text-[1.1rem] font-bold ">Fechas Clave</h3>
                                                         <div className="font-medium text-gray-400">
-                                                            <p>Inscripciones: 15 de Agosto - 25 de Agosto</p>
-                                                            <p>Inicio del Torneo: 1 de Septiembre</p>
+                                                            <p>Inscripciones: 15 de Agosto - 25 de Agosto </p>
+                                                            <p>Inicio del Torneo: {tournament?.inicio}</p>
                                                         </div>
                                                     </div>
                                                 </div>
@@ -512,8 +640,8 @@ const [isSept, setStep] = useState(1);
                                                                 />
                                                             </div>
                                                             <div className="text-start">
-                                                                <h3 className=" font-semibold text-gray-400">Deporte</h3>
-                                                                <p className="text-[1.1rem] font-bold">{selectedDiscipline?.nombre_deporte}</p>
+                                                                <h3 className=" font-medium text-gray-400">Deporte</h3>
+                                                                <p className="text-[1.1rem] font-bold  text-black">{selectedDiscipline?.nombre_deporte}</p>
                                                             </div>
                                                         </div>
                                                     </div>   
@@ -529,16 +657,16 @@ const [isSept, setStep] = useState(1);
                                                                 />
                                                             </div>
                                                             <div className="text-start">
-                                                                <h3 className="font-semibold text-gray-400">Categoría</h3>
-                                                                <p className="text-[1.1rem] font-bold">{selectedDiscipline?.categoria}</p>
+                                                                <h3 className="font-medium text-gray-400">Categoría</h3>
+                                                                <p className="text-[1.1rem] font-bold text-black">Categoría {selectedDiscipline?.categoria}</p>
                                                             </div>
                                                         </div>
                                                     </div>                                                         
                                                 </div>
                                                 
-                                                <div className="bg-white p-4 rounded-2xl shadow-md flex flex-col md:flex-row justify-between items-center gap-3">
+                                                <div className="bg-white p-4 rounded-2xl shadow-md flex flex-col sm:flex-row items-center gap-3">
 
-                                                        <div className="flex  gap-1.5">
+                                                        <div className="flex w-full items-start gap-1.5">
                                                             <div className="relative size-[48px] bg-unimar/15 rounded-full">
                                                                 <Image
                                                                     className=" absolute inset-0 object-contain"
@@ -547,21 +675,21 @@ const [isSept, setStep] = useState(1);
                                                                     fill
                                                                 />
                                                             </div>
-                                                            <div >
+                                                            <div>
                                                                 <h3 className="text-[1.1rem] font-bold ">Reglamento de la Disciplina</h3>
                                                                 <p className="text-gray-400">consulte las reglas antes de inscribirse.</p>
                                                             </div>
                                                         </div>
-                                                        <Button className="cursor-pointer bg-blue-100 px-4 py-2 rounded-xl flex gap-1.5 items-center font-bold text-unimar">
-                                                            <Image
-                                                                className="size-4 scale-245"
-                                                                src={'/descarga.png'}
-                                                                alt="descargar"
-                                                                width={500}
-                                                                height={500}
-                                                            />
-                                                            <p className="text-blue-700">Descargar</p>
-                                                        </Button>
+                                                            <Button className="cursor-pointer bg-blue-100 px-4 py-2 rounded-xl flex gap-1.5 items-center font-bold text-unimar">
+                                                                <Image
+                                                                    className="size-4 scale-245"
+                                                                    src={'/descarga.png'}
+                                                                    alt="descargar"
+                                                                    width={500}
+                                                                    height={500}
+                                                                />
+                                                                <p className="text-blue-700 px-3">Descargar</p>
+                                                            </Button>
 
                                                 </div> 
                                         </div>
@@ -635,50 +763,9 @@ const [isSept, setStep] = useState(1);
                                     </div>
 
 
-                                    <div className="flex flex-col space-y-5 p-4 bg-gray-100 shadow rounded-xl">
-                                        <div className="flex place-items-center gap-2">
-                                            <div className="relative size-[52px] bg-unimar/5 rounded-full">
-                                                <Image
-                                                    className=" absolute inset-0 object-contain grayscale-40"
-                                                    src={'/persona.png'}
-                                                    alt="lol"
-                                                    fill
-                                                />
-                                            </div>
-                                            <div className="text-start">
-                                                <h3 className="text-[1.3rem] font-bold">Información del Delegado</h3>
-                                            </div>
-                                        </div>
-                                        <div className="text-start  flex flex-col lg:flex-row gap-3 p-2 ">
-                                            <InputGroup label="Correo institucional del delegado" labelClass="text-gray-500" For="nombre">
-                                                <Input
-                                                    className="input"
-                                                    type="email"
-                                                    value={teamData.delegadoCorreo}
-                                                    onChange={(e) => handleChange("delegadoCorreo", e.target.value)}
-                                                    placeholder="delegado@unimar.edu.ve"
-                                                />
-                                                {errors.delegadoCorreo && <p className="text-red-500 text-sm mt-1">{errors.delegadoCorreo}</p>}
-                                            </InputGroup> 
-                                            <InputGroup label="Numero del Telefono" labelClass="text-gray-500" For="nombre">
-                                                <Input
-                                                    className="input"
-                                                    type="text"
-                                                    value={teamData.delegadoTelefono}
-                                                    onChange={(e) => handleChange("delegadoTelefono", e.target.value)}
-                                                    placeholder="04242575321"
-                                                />
-                                                {errors.delegadoTelefono && <p className="text-red-500 text-sm mt-1">{errors.delegadoTelefono}</p>}
-                                            </InputGroup>                                                            
-                                        </div>
-                                    </div>
-
                                     <div className="flex flex-col p-3 bg-gray-100 shadow rounded-xl">
                                         <UploadLogo
                                             file={teamData.logo}
-                                            
-                                            error={errors.logo}
-
                                             onFileChange={(file: File | null) => {
                                                 setTeamData(prev => ({ ...prev, logo: file }));
                                                 
@@ -687,89 +774,132 @@ const [isSept, setStep] = useState(1);
                                                 }
                                             }}
                                         />
+                                         {errors.logo && <p className="text-red-500 text-sm mb-0.5">{errors.logo}</p>}
                                     </div>
 
                                   
   
-                                <section className="flex flex-col space-y-4 p-4 bg-gray-100 shadow rounded-xl">
-                                <div className="flex items-center gap-2">
-                                    <div className="relative size-[52px] bg-unimar/8 rounded-full">
-                                    <Image
-                                        className="absolute inset-0 object-contain"
-                                        src="/deporte.png"
-                                        alt="Integrantes"
-                                        fill
-                                    />
-                                    </div>
-                                    <h3 className="text-[1.3rem] font-bold">Integrantes del Equipo</h3>
-                                </div>
-
-                                
-                                <p className="text-gray-600 text-sm font-medium">
-                                    Integrantes: {teamData.integrantes.length} / {maxIntegrantes}
-                                </p>
-
-                                
-                                {teamData.integrantes.map((int, i) => (
-                                    <div key={i} className="flex justify-between items-center bg-white p-3 rounded-xl shadow-sm">
-                                    <div className="flex items-center gap-3">
-                                        <div className="size-10 flex items-center justify-center bg-blue-100 text-blue-600 font-bold rounded-full">
-                                        {int.dorsal}
+                                    <section className="flex flex-col space-y-4 p-4 bg-gray-100 shadow rounded-xl">
+                                        <div className="flex items-center gap-2">
+                                            <div className="relative size-[52px] bg-unimar/8 rounded-full">
+                                                <Image
+                                                    className="absolute inset-0 object-contain"
+                                                    src="/deporte.png"
+                                                    alt="Integrantes"
+                                                    fill
+                                                />
+                                            </div>
+                                            <h3 className="text-[1.3rem] font-bold">Integrantes del Equipo</h3>
                                         </div>
-                                        <div>
-                                        <p className="font-semibold text-gray-900">{int.cedula}</p>
-                                        <p className="text-gray-500 text-sm">{int.correo}</p>
-                                        </div>
-                                    </div>
 
-                                    <div className="flex gap-2">
-                                        <button
-                                        onClick={() => handleEditIntegrante(i)}
-                                        className=" hover:bg-gray-200 p-1 rounded-full cursor-pointer"
-                                        >
-                                            <Image src="/lapiz (1).png" alt="Eliminar" width={24} height={24} className="scale-90" />
-                                        </button>
-                                        <button
-                                        onClick={() => handleRemoveIntegrante(i)}
-                                        className=" hover:bg-rose-200 p-1 rounded-full cursor-pointer"
-                                        >
-                                            <Image src="/basura (1).png" alt="Eliminar" width={24} height={24} className="scale-90" />
-                                        </button>
-                                    </div>
-                                    </div>
-                                ))}
+                                       
+                                        <p className="text-gray-600 text-sm font-medium">
+                                            Integrantes: {teamData.integrantes.length} / {maxIntegrantes}
+                                            (Mínimo requerido: {minIntegrantes})
+                                        </p>
 
-                                <div className="flex flex-wrap items-end gap-3 p-3 bg-gray-50 rounded-xl border border-dashed border-gray-300">
-                                    <Input
-                                    placeholder="Dorsal"
-                                    value={nuevo.dorsal}
-                                    onChange={(e) => setNuevo({ ...nuevo, dorsal: e.target.value })}
-                                    className="input w-20"
-                                    />
-                                    
-                                    <Input
-                                    placeholder="Correo institucional"
-                                    value={nuevo.correo}
-                                    onChange={(e) => setNuevo({ ...nuevo, correo: e.target.value })}
-                                    className="input flex-1"
-                                    />
-                                    <Input
-                                    placeholder="Cédula"
-                                    value={nuevo.cedula}
-                                    onChange={(e) => setNuevo({ ...nuevo, cedula: e.target.value })}
-                                    className="input flex-1"
-                                    />
+                                        {teamData.integrantes.map((int, i) => (
+                                            <div key={i} className="flex justify-between items-center bg-white p-3 rounded-xl shadow-sm">                                                
+                                                <div className="flex items-center gap-3">
+                                                    <div className="size-10 flex items-center justify-center bg-blue-100 text-blue-600 font-bold rounded-full">
+                                                        {int.dorsal}
+                                                    </div>
+                                                    <div className="text-start">
+                                                        <p className="font-semibold text-gray-900">{int.cedula}</p>
+                                                        <p className="text-gray-500 text-sm">{int.correo}</p>
+                                                        <p className="text-gray-500 text-sm">{int.telefono}</p>
+                                                    </div>
 
-                                    <Button
-                                    onClick={handleAddIntegrante}
-                                    className={`${
-                                        editIndex !== null ? "bg-blue-500" : "bg-unimar"
-                                    } text-white font-bold rounded-xl px-4 py-2 cursor-pointer`}
-                                    >
-                                    {editIndex !== null ? "Guardar cambios" : "Añadir integrante"}
-                                    </Button>
-                                </div>
-                                </section>
+                                                </div>
+                                                <div className="flex gap-1.5">
+                                                    <button
+                                                        onClick={() => handleSetCaptain(i)}
+                                                        title="Designar como Capitán"
+                                                        className={`p-2 rounded-full cursor-pointer transition-colors 
+                                                            ${captainIndex === i 
+                                                                ? 'bg-yellow-100/75 text-white' 
+                                                                : 'grayscale hover:bg-yellow-200/75'
+                                                            }`}
+                                                    >
+                                                        <Image
+                                                            src={`/favorito.png`}
+                                                            width={28}
+                                                            height={36}
+                                                            alt="capitan"
+                                                        />
+                                                    </button>
+                                                    <button
+                                                        onClick={() => handleEditIntegrante(i)}
+                                                        className=" hover:bg-gray-200 p-2 rounded-full cursor-pointer"
+                                                    >
+                                                        <Image src="/lapiz (1).png" alt="Editar" width={24} height={16} />
+                                                    </button>
+                                                    <button
+                                                        onClick={() => handleRemoveIntegrante(i)}
+                                                        className=" hover:bg-rose-200 p-2 rounded-full cursor-pointer"
+                                                    >
+                                                        <Image src="/basura (1).png" alt="Eliminar" width={24} height={16} />
+                                                    </button>
+                                                </div>
+                                            </div>
+
+                                        ))}
+
+                                            <div className="flex flex-wrap items-start gap-4 p-3 bg-gray-50 rounded-xl border border-dashed border-gray-300">
+                                                
+                                                <div className="w-20"> 
+                                                    <Input
+                                                        placeholder="Dorsal"
+                                                        value={nuevo.dorsal}
+                                                        onChange={(e) => setNuevo({ ...nuevo, dorsal: e.target.value })}
+                                                        className="input w-full"
+                                                    />
+                                                    {integranteError.dorsal && <p className="text-red-500 text-xs mt-1">{integranteError.dorsal}</p>}
+                                                </div>
+                                            
+                                                <div className="flex-1 min-w-[120px]"> 
+                                                    <Input
+                                                        placeholder="Teléfono (04...)"
+                                                        value={nuevo.telefono}
+                                                        onChange={(e) => setNuevo({ ...nuevo, telefono: e.target.value })}
+                                                        className="input w-full"
+                                                    />
+                                                    {integranteError.telefono && <p className="text-red-500 text-xs mt-1">{integranteError.telefono}</p>}
+                                                </div>
+                                                
+                                                <div className="flex-1 min-w-[150px]">
+                                                    <div className="relative flex items-center">
+                                                        <span className="absolute left-3 text-gray-500">V-</span>
+                                                        <Input
+                                                            placeholder="Cédula (solo números)"
+                                                            value={nuevo.cedula}
+                                                            onChange={(e) => setNuevo({ ...nuevo, cedula: e.target.value })}
+                                                            className="input w-full pl-8"
+                                                        />
+                                                    </div>
+                                                    {integranteError.cedula && <p className="text-red-500 text-xs mt-1">{integranteError.cedula}</p>}
+                                                </div>
+
+                                                <div className="flex-1 min-w-[180px]"> 
+                                                    <Input
+                                                        placeholder="usuario@unimar.edu.ve"
+                                                        value={nuevo.correo}
+                                                        onChange={(e) => setNuevo({ ...nuevo, correo: e.target.value })}
+                                                        className="input w-full"
+                                                    />
+                                                    {integranteError.correo && <p className="text-red-500 text-xs mt-1">{integranteError.correo}</p>}
+                                                </div>
+
+                                                <Button
+                                                    onClick={handleAddIntegrante}
+                                                    className={`${
+                                                        editIndex !== null ? "bg-blue-500" : "bg-unimar"
+                                                    } text-white font-bold rounded-xl px-4 w-full py-2 cursor-pointer mt-4`}
+                                                >
+                                                    {editIndex !== null ? "Guardar cambios" : "Añadir integrante"}
+                                                </Button>
+                                            </div>
+                                    </section>
 
                                                                     
                                 </section>
@@ -793,13 +923,14 @@ const [isSept, setStep] = useState(1);
                     ? handleNextClick
                     : isSept === 2
                     ? next
-                    : () => {
+                    : handleFinalSubmit /*() => {
                         if (validateStep3()) {
                             console.log("Datos completos:", teamData);
                             alert("Formulario completo ✅");
+                            handleFinalSubmit();
                             handleCloseModal();
                         }
-                    }
+                    }*/
                 }
                 
             />
@@ -808,3 +939,5 @@ const [isSept, setStep] = useState(1);
         </ContainModal>
   )
 }
+
+                      

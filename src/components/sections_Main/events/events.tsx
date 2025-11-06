@@ -8,9 +8,65 @@ import { useState } from "react";
 import {ActiveLink} from "@/components/ui/Router";
 
 
+
 export default function Events(){
 
- const [isHovered, setIsHovered] = useState(false);
+    const [email, setEmail] = useState("");
+    const [isLoading, setIsLoading] = useState(false);
+    const [message, setMessage] = useState<{type: 'success' | 'error', text: string} | null>(null);
+    const [isHovered, setIsHovered] = useState(false);
+
+    const handleSubmitSubscription = async (e: React.FormEvent) => {
+        e.preventDefault(); // Evita que la página se recargue
+        setIsLoading(true);
+        setMessage(null);
+
+        const trimmedEmail = email.trim();
+        const emailRegex = /^[a-zA-Z0-9._%+-]+@unimar\.edu\.ve$/i;
+
+   if (!trimmedEmail) {
+        setMessage({ type: 'error', text: 'El correo no puede estar vacío.' });
+        setIsLoading(false);
+        return;
+    }
+
+    if (!emailRegex.test(trimmedEmail)) {
+        setMessage({ type: 'error', text: 'Por favor, usa un correo institucional (@unimar.edu.ve) válido.' });
+        setIsLoading(false);
+        return;
+    }
+
+    const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api';
+
+    try {
+        const res = await fetch(`${API_URL}/subscribe`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json',
+            },
+            body: JSON.stringify({ email: trimmedEmail })
+        });
+
+        const data = await res.json();
+
+        if (!res.ok) {
+            if (res.status === 422 && data.errors?.email) {
+                throw new Error(data.errors.email[0]);
+            }
+            throw new Error(data.message || 'Error al suscribirse.');
+        }
+
+            setMessage({ type: 'success', text: data.message });
+            setEmail("");
+
+        } catch (error: any) {
+            setMessage({ type: 'error', text: error.message });
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
      const iconMove = {
         initial: { rotate: 0},
         hover: { 
@@ -72,11 +128,25 @@ export default function Events(){
                         </p>
                     </div>
 
-                    <div className="z-10  relative bg-white rounded-lg shadow-2xl mt-3 py-6 lg:py-6.5 w-[90%] sm:w-[80%] md:w-[50%] lg:w-[33%] 2xl:w-[30%] ">
-                            <Input type="email" placeholder="example.0123@unimar.edu.ve" className="absolute z-10 top-0 inset-0 text-sm md:text-md lg:text-lg text-black rounded-lg sm:pl-5 pr-22.5 sm:pr-23  focus:ring-[1px] ring ring-univita focus:ring-gray-700 focus:outline-none"/>
-                            <Button className="absolute contain flex px-6 cursor-pointer font-semibold z-10 right-1 top-[3px]  bg-unimar text-sm md:text-[15px] sm:px-2.5 py-2 lg:py-2.5 md:px-6 rounded-lg hover:opacity-95 transition-all duration-300 place-items-center"
+                    <form className="z-10  relative bg-white rounded-lg shadow-2xl mt-3 py-6 lg:py-6.5 w-[90%] sm:w-[80%] md:w-[50%] lg:w-[33%] 2xl:w-[30%] "
+                        onSubmit={handleSubmitSubscription}
+                        noValidate
+                    >
+                            
+                            <Input 
+                                type="email" 
+                                placeholder="example.0123@unimar.edu.ve"
+                                className="absolute z-10 top-0 inset-0 text-sm md:text-md lg:text-lg text-black rounded-lg sm:pl-5 pr-22.5 sm:pr-23  focus:ring-[1px] ring ring-univita focus:ring-gray-700 focus:outline-none"
+                                value={email}
+                                onChange={(e) => setEmail(e.target.value)}
+                                disabled={isLoading}
+                            />
+                            <Button 
+                                className="absolute contain flex px-6 cursor-pointer font-semibold z-10 right-1 top-[3px]  bg-unimar text-sm md:text-[15px] sm:px-2.5 py-2 lg:py-2.5 md:px-6 rounded-lg hover:opacity-95 transition-all duration-300 place-items-center"
                                 onMouseEnter={() => setIsHovered(true)}
                                 onMouseLeave={() => setIsHovered(false)}
+                                type="submit"
+                                disabled={isLoading}
                             >
                                 <motion.div 
                                     variants={iconMove}
@@ -95,10 +165,22 @@ export default function Events(){
                                         width={26}
                                         
                                     />
+
                                 </motion.div >
                                 
                             </Button>
-                    </div>
+                    </form>
+
+                    {isLoading && (
+                        <p className="z-10 text-white mt-2">Procesando...</p>
+                    )}
+                    {message && (
+                        <p className={`z-10 ${
+                            message.type === 'success' ? 'text-green-300' : 'text-red-300'
+                        }`}>
+                            {message.text}
+                        </p>
+                    )}
                     
                 </motion.div>   
             </section>
@@ -107,25 +189,3 @@ export default function Events(){
         </div>
     );
 }
-
-{/*
-    para navegar dentro de eventos
-                    <div className={`flex flex-col md:flex-row gap-1 bg-gray-300 p-2 rounded-full transition-all duration-300 w-full sm:w-[75%] md:w-auto`}>
-                        <Button className={`flex gap-2 place-items-center md:place-content-center transition-all duration-300 ease-in-out text-[17px] btn bg-transparent text-gray-500`}>
-                         todos
-                        </Button>
-                        <Button className={`flex gap-2 place-items-center md:place-content-center transition-all duration-300 ease-in-out text-[17px] btn bg-transparent text-gray-500`}>
-                         futbol
-                        </Button>
-                        <Button className={`flex gap-2 place-items-center md:place-content-center transition-all duration-300 ease-in-out text-[17px] btn bg-transparent text-gray-500`}>
-                         Basquet
-                        </Button>
-                        <Button className={`flex gap-2 place-items-center md:place-content-center transition-all duration-300 ease-in-out text-[17px] btn bg-transparent text-gray-500`}>
-                         Voleibal
-                        </Button>
-                        <Button className={`flex gap-2 place-items-center md:place-content-center transition-all duration-300 ease-in-out text-[17px] btn bg-transparent text-gray-500`}>
-                         Tenis de Mesa
-                        </Button>
-                </div>
-
-    */}
