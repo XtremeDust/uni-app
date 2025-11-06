@@ -923,14 +923,7 @@ const [isSept, setStep] = useState(1);
                     ? handleNextClick
                     : isSept === 2
                     ? next
-                    : handleFinalSubmit /*() => {
-                        if (validateStep3()) {
-                            console.log("Datos completos:", teamData);
-                            alert("Formulario completo ✅");
-                            handleFinalSubmit();
-                            handleCloseModal();
-                        }
-                    }*/
+                    : handleFinalSubmit
                 }
                 
             />
