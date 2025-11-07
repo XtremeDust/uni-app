@@ -150,10 +150,10 @@ export default function page() {
             setLoading(true);
             setError(null);
 
-            const API_URL = process.env.NEXT_PUBLIC_API_URL;
+            const API_URL = `${process.env.NEXT_PUBLIC_API_URL}/api`;
             try {
                 // Llama a tu endpoint de ofertas académicas
-                const response = await fetch(`${API_URL}/api/academic-offerings`);
+                const response = await fetch(`${API_URL}/academic-offerings`);
                 if (!response.ok) {
                     throw new Error(`HTTP error: ${response.statusText}`);
                 }

@@ -99,7 +99,7 @@ import {
         setError(null); 
         const API_URL = process.env.NEXT_PUBLIC_API_URL 
 
-        const res = await fetch(`${API_URL}/posts`);
+        const res = await fetch(`${API_URL}/api/posts`);
 
         if (!res.ok) { 
           throw new Error(`Error HTTP: ${res.statusText}`);
@@ -126,7 +126,7 @@ import {
 
   if (loading) return <p>Cargando posts...</p>;
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL;
+const API_URL = `${process.env.NEXT_PUBLIC_API_URL}/api`;
 
     const handleVerDetalle = async (entryComent:ApiList)=>{
 

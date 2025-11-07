@@ -211,7 +211,7 @@ export default function page() {
         async function fetchActivities() {
             setLoadingTable(true);
             setErrorTable(null);
-            const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api';
+            const API_URL = `${process.env.NEXT_PUBLIC_API_URL}/api`;
             try {
                 const res = await fetch(`${API_URL}/activities`);
                 if (!res.ok) throw new Error(`Error HTTP: ${res.statusText}`);
@@ -233,7 +233,7 @@ export default function page() {
         setSelectedActivity(null);
 
         try {
-            const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api';
+            const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
             const res = await fetch(`${API_URL}/activities/${activityId}`);
             if (!res.ok) throw new Error(`Error en API Activities: ${res.statusText}`);
             const jsonData = await res.json();

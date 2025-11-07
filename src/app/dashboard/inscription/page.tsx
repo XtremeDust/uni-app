@@ -203,13 +203,13 @@ export default function page() {
                     setLoading(true);
                     setError(null);
 
-                    const API_URL = process.env.NEXT_PUBLIC_API_URL;
+                    const API_URL = `${process.env.NEXT_PUBLIC_API_URL}/api`;
 
                     // Ejecutamos ambas peticiones en paralelo
                     const [   teamsRes, userTeamsRes, subRes] = await Promise.all([
-                        fetch(`${API_URL}/api/teams-inscription`),
-                        fetch(`${API_URL}/api/teams`),
-                        fetch(`${API_URL}/api/subscribed-users`),
+                        fetch(`${API_URL}/teams-inscription`),
+                        fetch(`${API_URL}/teams`),
+                        fetch(`${API_URL}/subscribed-users`),
                     ]);
 
                     // Comprobamos si ambas respuestas son exitosas

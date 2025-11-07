@@ -130,7 +130,7 @@ export default function page() {
             async function fetchTournaments() {
                 setLoading(true);
                 setError(null);
-                 const API_URL = process.env.NEXT_PUBLIC_API_URL;
+                 const API_URL = `${process.env.NEXT_PUBLIC_API_URL}/api`;
                 try {
                     const response = await fetch(`${API_URL}/tournaments`);
                     if (!response.ok) {
@@ -158,7 +158,7 @@ export default function page() {
             setSelectedT(null);
 
             try{
-                const res = await fetch(`${API_URL}/tournaments/${entryT.id}`)
+                const res = await fetch(`${API_URL}/api/tournaments/${entryT.id}`)
                 if (!res.ok) throw new Error(`Error en API Torneos: ${res.statusText}`);
                 const jsonData = await res.json();
                 setSelectedT(jsonData.data); 
