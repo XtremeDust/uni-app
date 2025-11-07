@@ -153,7 +153,7 @@ export default function page() {
             const API_URL = process.env.NEXT_PUBLIC_API_URL;
             try {
                 // Llama a tu endpoint de ofertas académicas
-                const response = await fetch(`${API_URL}/academic-offerings`);
+                const response = await fetch(`${API_URL}/api/academic-offerings`);
                 if (!response.ok) {
                     throw new Error(`HTTP error: ${response.statusText}`);
                 }

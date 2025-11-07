@@ -207,9 +207,9 @@ export default function page() {
 
                     // Ejecutamos ambas peticiones en paralelo
                     const [   teamsRes, userTeamsRes, subRes] = await Promise.all([
-                        fetch(`${API_URL}/Api/teams-inscription`),
-                        fetch(`${API_URL}/Api/teams`),
-                        fetch(`${API_URL}/Api/subscribed-users`),
+                        fetch(`${API_URL}/api/teams-inscription`),
+                        fetch(`${API_URL}/api/teams`),
+                        fetch(`${API_URL}/api/subscribed-users`),
                     ]);
 
                     // Comprobamos si ambas respuestas son exitosas
