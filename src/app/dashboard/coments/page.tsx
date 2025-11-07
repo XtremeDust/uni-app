@@ -22,45 +22,6 @@ import {
     {id:3, titulo:"Estado"},
     {id:5, titulo:"Acciones"},
   ]
-    
-  /*
-  const coment = [
-      {
-          id: 1,
-          email: "carlos.marquez@unimar.edu.ve",
-          fecha: "2025-10-18T10:30:00Z",
-          contenido: "Excelente iniciativa para las inscripciones deportivas. La interfaz de selección de categorías es muy intuitiva.",
-          visibilidad: 'Publico',
-      },
-      {
-          id: 2,
-          email: "a.nimo@unimar.edu.ve",
-          fecha: "2025-10-18T11:45:00Z",
-          contenido: "Deberían agregar más deportes de mesa.",
-          visibilidad: 'Anonimo',
-      },
-      {
-          id: 3,
-          email: "p.gonzalez@unimar.edu.ve",
-          fecha: "2025-10-17T15:22:00Z",
-          contenido: "Deberían agregar una vista de calendario en el dashboard para ver el cronograma de todos los partidos del mes en una sola pantalla.",
-          visibilidad: 'Publico',
-      },
-      {
-          id: 4,
-          email: "n.imo.2@unimar.edu.ve",
-          fecha: "2025-10-16T09:05:00Z",
-          contenido: "El dashboard tarda mucho en cargar al aplicar filtros de fecha. Podrían optimizar la consulta a la base de datos para que sea más rápida.",
-          visibilidad: 'Anonimo',
-      },
-      {
-          id: 5,
-          email: "maria.perez@unimar.edu.ve",
-          fecha: "2025-10-16T18:01:00Z",
-          contenido: "¡Me encanta el nuevo diseño! La opción de cerrar sesión es muy visible.",
-          visibilidad: 'Publico',
-      },
-  ];*/
 
   const buttons = [
       {id:1, button:"Desacargar", img:"/bandeja-de-descarga.png"},

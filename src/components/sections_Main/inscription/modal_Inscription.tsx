@@ -444,13 +444,13 @@ const [isSept, setStep] = useState(1);
     
     if (error) {
          return (
-            <ContainModal className="w-full max-w-md p-6">
+            <ContainModal className="w-full max-w-md bg-white space-y-5">
                 <HeaderModal onClose={handleCloseModal} >
                     <h3 className="text-xl font-bold text-red-600">Error</h3>
                 </HeaderModal>
-                <div className="p-4 text-center">
-                    <p className="text-gray-700 mt-2">{error}</p>
-                    <Button onClick={handleCloseModal} className="mt-4 bg-unimar text-white">Cerrar</Button>
+                <div className="flex flex-col ">
+                    <p className="text-gray-700">{error}</p>
+                    <Button onClick={handleCloseModal} className="mt-6 btn bg-unimar text-white cursor-pointer">Cerrar</Button>
                 </div>
             </ContainModal>
         );
