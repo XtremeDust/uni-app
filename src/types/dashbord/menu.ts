@@ -28,6 +28,7 @@ export const menu:Submenu[]=[
             {id:5, section:'Gestion de Torneos', img:'/eficiencia.png',src:''}
         ]
     },
-    {id:6, section:'Ofertas Deportivas', img:'/etiqueta (1).png',src:''},
+    {id:8, section:'Deportes', img:'/deporte.png',src:''},
+    {id:6, section:'Ofertas Academicas', img:'/etiqueta (1).png',src:''},
     {id:7, section:'Comentarios', img:'/insertar-comentario.png',src:''},
 ]

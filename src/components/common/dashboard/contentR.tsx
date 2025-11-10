@@ -6,6 +6,7 @@ import React, { Suspense } from 'react';
     const EventosModule = React.lazy(() => import('@/app/dashboard/gestion/general/page')); 
     const TorneosModule = React.lazy(() => import('@/app/dashboard/gestion/tournaments/page')); 
     const OfertasModule = React.lazy(() => import('@/app/dashboard/offerts/page')); 
+    const SportsModule = React.lazy(()=> import('@/app/dashboard/sport/Sports'));
     const ComentariosModule = React.lazy(() => import('@/app/dashboard/coments/page'));
 
     const VIEW_KEYS = {
@@ -16,6 +17,7 @@ import React, { Suspense } from 'react';
     EVENTOS_GESTION: 5,
     OFERTAS: 6,
     COMENTARIOS: 7,
+    SPORTS:8,
     };
 
     const VIEW_COMPONENTS: Record<number, React.FC> = {
@@ -26,6 +28,7 @@ import React, { Suspense } from 'react';
     [VIEW_KEYS.EVENTOS_GESTION]: TorneosModule,
     [VIEW_KEYS.OFERTAS]: OfertasModule,
     [VIEW_KEYS.COMENTARIOS]: ComentariosModule,
+    [VIEW_KEYS.SPORTS]:SportsModule,
     };
 
     interface ContentRendererProps {

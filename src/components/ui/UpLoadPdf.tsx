@@ -1,0 +1,162 @@
+'use client';
+import React, { useState, useRef, DragEvent, ChangeEvent } from 'react';
+import Image from 'next/image';
+import { Input, InputGroup } from '@/types/ui_components';
+
+interface PdfUploaderProps {
+  file: File | null;
+  onFileChange: (file: File | null) => void; 
+  error?: string | null; 
+  label?: string;
+}
+
+export default function PdfUploader({ 
+  file, 
+  onFileChange, 
+  error, 
+  label = "Archivo PDF (requerido)" 
+}: PdfUploaderProps) {
+  
+  const [isDragging, setIsDragging] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const previewUrl = file ? URL.createObjectURL(file) : null;
+
+  const handleFileChange = (e: ChangeEvent<HTMLInputElement>) => {
+    const selectedFile = e.target.files?.[0];
+    validateAndSetFile(selectedFile || null);
+    
+    if (fileInputRef.current) {
+        fileInputRef.current.value = "";
+    }
+  };
+
+  const handleDragOver = (e: DragEvent<HTMLLabelElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(true);
+  };
+
+  const handleDragLeave = (e: DragEvent<HTMLLabelElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(false);
+  };
+
+  const handleDrop = (e: DragEvent<HTMLLabelElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(false);
+    const droppedFile = e.dataTransfer.files?.[0];
+    validateAndSetFile(droppedFile || null);
+  };
+  
+  const validateAndSetFile = (selected: File | null) => {
+    if (!selected) {
+      onFileChange(null);
+      return;
+    }
+    
+    if (selected.type !== "application/pdf") {
+        alert("Formato no permitido. Solo se aceptan archivos PDF.");
+        onFileChange(null);
+        return;
+    }
+    
+    const maxSizeMB = 10;
+    if (selected.size > maxSizeMB * 1024 * 1024) {
+      alert(`El archivo supera el tamaño máximo de ${maxSizeMB}MB.`);
+      onFileChange(null);
+      return;
+    }
+    onFileChange(selected);
+  };
+
+  const handleRemoveFile = (e: React.MouseEvent<HTMLButtonElement>) => {
+    e.stopPropagation();
+    onFileChange(null);
+  };
+
+  return (
+    <div className="flex flex-col">
+      <InputGroup label={label} For="pdfFile" labelClass="text-gray-500 text-start">
+        <Input
+          ref={fileInputRef}
+          className="hidden"
+          id="pdfFile"
+          type="file"
+          accept="application/pdf"
+          onChange={handleFileChange}
+        />
+        
+        {file && previewUrl ? (
+
+          <div className="relative space-y-1 flex flex-col items-center justify-between w-full h-auto p-4 rounded-lg border-2 border-green-500 bg-green-50">
+            <div className="flex w-full justify-between items-center px-2">
+                <div className='text-left overflow-hidden flex gap-5 items-center'>
+                    <p className='font-bold text-gray-800 truncate'>{file.name}</p>
+                    <p className='text-sm text-gray-600'>
+                        {(file.size / 1024 / 1024) === 0.00 ? ((file.size / 1024 / 1024).toFixed(2)+' MB'): ((file.size / 1024).toFixed(2)+' KB')}
+                    </p>
+                </div>
+                <button
+                    type="button"
+                    onClick={handleRemoveFile}
+                    className="bg-red-100 text-red-700 rounded-full px-2.5 py-1 hover:bg-red-200 transition-colors flex-shrink-0"
+                    aria-label="Eliminar archivo"
+                >
+                    &#10005; 
+                </button>
+            </div>
+
+            <div className="w-full h-80 border border-gray-300 rounded-md overflow-hidden">
+                <iframe
+                    src={previewUrl} // Usa la URL temporal
+                    className="w-full h-72 md:h-90 border-0 rounded" // Altura ajustable
+                    title="Vista previa del PDF"
+                >
+                    <p>Tu navegador no soporta la previsualización de PDF.</p>
+                    <a href={previewUrl} download={file.name}>Descargar PDF para ver</a>
+                </iframe>
+            </div>
+
+          </div>
+        ) : (
+          <label
+            htmlFor="pdfFile"
+            onDragOver={handleDragOver}
+            onDragLeave={handleDragLeave}
+            onDrop={handleDrop}
+            className={`
+              flex flex-col h-full rounded-lg border-2 border-dashed 
+              border-gray-400 text-center cursor-pointer
+              p-6 place-items-center justify-center 
+              transition-colors
+              ${isDragging ? 'border-blue-800 bg-blue-50' : 'hover:border-blue-800 grayscale hover:grayscale-0'}
+              ${error ? 'border-red-600 bg-red-50' : ''}
+            `}
+          >
+            <div className="relative size-[58px] rounded-2xl mb-4">
+              <Image
+                className="absolute inset-0 object-contain scale-135 bg-unimar/15 rounded-full"
+                src={'/subir.png'}
+                alt="Subir archivo"
+                fill
+              />
+            </div>
+            <p> 
+              <span className="text-unimar font-bold">Seleccionar PDF</span> o arrastrar el archivo aquí
+            </p>
+            <p className="text-[12px] text-gray-500">
+              Solo archivos PDF. Máx 10MB.
+            </p>
+          </label>
+        )}
+
+        {error && !file && ( 
+          <p className="text-red-600 text-sm mt-1">{error}</p>
+        )}
+      </InputGroup>
+    </div>
+  );
+}

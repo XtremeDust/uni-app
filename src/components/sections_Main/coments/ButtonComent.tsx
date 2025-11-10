@@ -1,9 +1,15 @@
-import React,{useState} from "react";
+import React,{ChangeEvent, useState} from "react";
 import {Button, Modal, ContainModal, Input, InputGroup, TextArea, HeaderModal, FooterModal} from "@/types/ui_components";
 import Image from "next/image";
 
 export default function Comment() {
     const [OpenModal, setModal] = useState(false);
+
+    const [isChecked, setIsChecked] = useState("public");
+    const [email, setEmail] = useState("");
+    const [body, setBody] = useState("");
+    const [isSaving, setIsSaving] = useState(false);
+    const [error, setError] = useState("");
 
     const handleOpenModal=()=>{
         setModal(true)  
@@ -11,13 +17,60 @@ export default function Comment() {
     };
 
     const handleCloseModal=()=>{
-        setModal(false)    
+        setModal(false) 
+        setEmail("");
+        setBody("");
+        setIsChecked("public");
+        setError("");
+        setIsSaving(false);   
     };
 
-    const [isChecked, setIsChecked] = useState("public");
+    const handleSave = async () => {
+        setError("");
+        
+        if (!body || !email) {
+            setError("Por favor, complete el correo y el comentario.");
+            return;
+        }
+        if (!email.includes('@unimar.edu.ve')) {
+            setError("Debe ser un correo institucional (@unimar.edu.ve).");
+            return;
+        }
 
-    const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-        setIsChecked(event.target.value);
+        setIsSaving(true);
+        
+        const status = isChecked === 'public' ? 'publico' : 'privado';
+        
+        const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api';
+
+        try {
+            const res = await fetch(`${API_URL}/posts`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json',
+                    // 'Authorization': `Bearer TU_TOKEN` // (Si es para usuarios logueados)
+                },
+                body: JSON.stringify({
+                    email: email,
+                    body: body,  
+                    status: status
+                })
+            });
+
+            if (!res.ok) {
+                const errData = await res.json();
+                throw new Error(errData.message || 'Error al enviar el comentario');
+            }
+            
+            alert("¡Gracias por tu comentario!");
+            handleCloseModal();
+
+        } catch (e: any) {
+            setError(e.message);
+        } finally {
+            setIsSaving(false);
+        }
     };
 
     return(
@@ -40,18 +93,18 @@ export default function Comment() {
 
            
         </div>
+
         <Modal state={OpenModal}>
             {OpenModal &&(
-                <ContainModal className="grid-flow-row-dense md:flex md:flex-col text-black h-[67%] md:h-[70%] size-[95%] sm:w-[80%] md:w-[60%] lg:w-[45%] xl:w-[40%] 2xl:w-[30%] space-y-3 overflow-y-auto bg-gray-200">
+                <ContainModal className="grid-flow-row-dense md:flex md:flex-col text-black h-[67%] md:h-[70%] size-[95%] sm:w-[80%] md:w-[60%] lg:w-[45%] xl:w-[40%] 2xl:w-[30%] space-y-3 overflow-y-auto bg-white">
                     
                     <HeaderModal onClose={handleCloseModal} className="flex-none text-[1.5rem] font-bold">
                         Buzón de Comentarios
-                    <p className="font-normal text-gray-600 text-[18px]">Nos encantaría conocer tu opinión</p>    
+                        <p className="font-normal text-gray-600 text-[18px]">Nos encantaría conocer tu opinión</p>    
                     </HeaderModal>                            
 
                     <section className="w-full relative place-items-center flex-grow">
                         <div className="main-modal flex-grow space-y-3 w-[95%]">
-
                             <div className="Email flex  space-y-3 md:gap-3 flex-col">
                                 <InputGroup For="Email" label="Correo Institucional" labelClass="text-[18px] text-start" className="w-full" >
                                     <div className="relative">
@@ -62,7 +115,10 @@ export default function Comment() {
                                             width={50}
                                             height={50}
                                         />
-                                        <Input type="Email" id="Email" className="input w-full pl-10 pr-3 py-2 bg-gray-100" placeholder="example.1234@unimar.edu.ve" required/>
+                                        <Input type="Email" id="Email" className="input w-full pl-10 pr-3 py-2 bg-gray-100" placeholder="example.1234@unimar.edu.ve" 
+                                        value={email}
+                                        onChange={(e: ChangeEvent<HTMLInputElement>) => setEmail(e.target.value)}
+                                        required/>
                                     </div>
                                 </InputGroup>
 
@@ -94,21 +150,7 @@ export default function Comment() {
                                     
                                     </div>
 
-                                    {/*eliminar */}
-                                    <div className="Seletion  flex-row space-x-3 hidden">
-                                        <InputGroup For="Seletion" label="Visibilidad del comentario" labelClass="col-span-3" className="w-full gap-1 grid grid-cols-3 place-items-start">
-                                        <>
-                                            <InputGroup For="public" label="Público" className={`flex flex-row-reverse gap-2 ${isChecked === 'public'? 'text-black':'text-gray-500'}`}>
-                                                <Input id="public" type="radio" name="correo" value="public" checked={isChecked === 'public'} onChange={handleChange}/>
-                                            </InputGroup>
-
-                                            <InputGroup For="private" label="Anónimo" className={`flex flex-row-reverse gap-2 ${isChecked === 'private'? 'text-black':'text-gray-500'}`}>
-                                                <Input id="private" type="radio" name="correo" value="private" checked={isChecked === 'private'} onChange={handleChange}/>
-                                            </InputGroup>
-                                        </>
-                                        </InputGroup>
                                     
-                                    </div>
 
                                     <span className={`text-[16px]  text-justify text-gray-700 ${isChecked==='public' ? 'flex': 'hidden'}`}>
                                         Si eliges 'Público', tu informacion de usuario será visible en la sección  de comentarios
@@ -123,14 +165,22 @@ export default function Comment() {
 
                             <div className="Coment flex space-y-3 md:gap-3 flex-col">
                                 <InputGroup label="Comentario" For="Comentario" labelClass="text-[18px] text-start ">
-                                    <TextArea id="Comentario" className="h-[8rem] input " placeholder="Escribe tu comentario aquí..."/>
+                                    <TextArea id="Comentario" className="h-[8rem] input " placeholder="Escribe tu comentario aquí..."
+                                        value={body}
+                                        onChange={(e: ChangeEvent<HTMLTextAreaElement>) => setBody(e.target.value)}
+                                    />
                                 </InputGroup>
-                            </div>
-
+                            </div>                            
                         </div>
                     </section>
 
-                    <FooterModal BTmain="Enviar" BTSecond="Cerrar" onClose={handleCloseModal} className="flex-none mt-8"/>
+                    {error && (
+                            <div className="text-red-500 text-sm text-center px-4 -mt-2">
+                                {error}
+                            </div>
+                    )}
+
+                    <FooterModal BTmain="Enviar" BTSecond="Cerrar" onClose={handleCloseModal} onSumit={handleSave} disabled={isSaving} className="flex-none mt-8"/>
                         
                     
                 </ContainModal>

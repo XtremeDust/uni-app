@@ -2,6 +2,9 @@
 import React, { useEffect, useState } from 'react'
 import Image from 'next/image'
 import Table_Games from '@/components/sections_Dashboard/Table_Games'
+import Modal_addtorneos from '@/components/sections_Dashboard/torneos/modal_AddTorneos'
+import Modal_addDiscipline from '@/components/sections_Dashboard/modal_Adddisciplinas'
+
 import { 
   Input,
   Button, 
@@ -22,7 +25,11 @@ import {
     {id:5, titulo:"Estado"},
     {id:6, titulo:"Acciones"},
  ]
-
+interface ApiRegulation {
+  id: number;
+  titulo: string;
+  url_archivo: string;
+}
 
 interface Creador {
   id: number;
@@ -52,6 +59,7 @@ interface ApiTournament {
   inicio: string;
   fin: string;
   disciplinas:ApiDiscipline[];
+  reglamentos_torneo:ApiRegulation[];
 }
 
 const buttons = [
@@ -84,6 +92,25 @@ interface ApiGames{
 
 
 export default function page() {
+
+    const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+
+    const [isAddDisciplineModalOpen, setIsAddDisciplineModalOpen] = useState(false);
+
+    const handleOpenAddDiscipline = (tournament: ApiList) => {
+        setModalOpenT(false);
+        setIsAddDisciplineModalOpen(true);
+  };
+    const handleDisciplineCreated = () => {
+    refreshTournaments(); 
+  };
+
+    const refreshTournaments = () => {
+        // (Aquí vuelves a llamar a 'fetchTournaments()')
+        // Por ahora, solo log:
+        console.log("¡Refrescando lista de torneos!");
+        // fetchTournaments(); // (Descomenta esto si tienes la función)
+    };
 
     const [isEstate, setSelectE] = useState('Todos'); 
     const [isOpenE, setIsOpenE] = useState(false);
@@ -137,7 +164,7 @@ export default function page() {
                         throw new Error(`Error HTTP: ${response.statusText}`);
                     }
                     const jsonData = await response.json();
-                    setTournaments(jsonData.data); // Obtiene el array desde la clave 'data'
+                    setTournaments(jsonData.data);
                 } catch (e: any) {
                     setError(e.message || "Error al cargar torneos");
                 } finally {
@@ -165,7 +192,6 @@ export default function page() {
 
             }catch (e: any){
                 console.error("Error al cargar detalles del torneo:", e);
-                // El modal mostrará un error
             }finally{
                  setLoadingModal(false);
             }
@@ -178,7 +204,9 @@ export default function page() {
                 <div className="bg-white p-6 rounded-lg shadow">
                     <div className="flex justify-between mb-6">
                         <h3 className="text-2xl font-bold">Torneos Deportivos</h3>
-                        <Button className="bg-unimar flex items-center gap-2 hover:bg-unimar/90 cursor-pointer h-10 text-white rounded-2xl px-4 py-7 md:py-0">
+                        <Button className="bg-unimar flex items-center gap-2 hover:bg-unimar/90 cursor-pointer h-10 text-white rounded-2xl px-4 py-7 md:py-0"
+                            onClick={() => setIsAddModalOpen(true)}
+                        >
                             <Image
                             className="size-5"
                                 src={'/mas.png'}
@@ -304,9 +332,27 @@ export default function page() {
                     isLoading={loadingModal}
                     state={isModalOpenT===true ? true:false}
                     onClose={() => setModalOpenT(false)}
+                    onAddDisciplineClick={() => handleOpenAddDiscipline(selectedEntry!)}
                 />
             )}
 
+            {isAddModalOpen && (
+                <Modal_addtorneos
+                    state={isAddModalOpen}
+                    onClose={() => setIsAddModalOpen(false)}    
+                    onTournamentCreated={refreshTournaments}
+                />
+            )}
+
+            {isAddDisciplineModalOpen && selectedEntry && ( // Asegúrate de que 'selectedEntry' no sea null
+                <Modal_addDiscipline
+                    state={isAddDisciplineModalOpen}
+                    onClose={() => setIsAddDisciplineModalOpen(false)}
+                    onSaveSuccess={handleDisciplineCreated}
+                    // Pasa el ID del torneo que estaba seleccionado
+                    tournamentId={selectedEntry.id} 
+                />
+            )}
             <Table_Games/>
                 
             </section>
@@ -322,6 +368,7 @@ interface ModalPropsTournaments {
     isLoading: boolean;
     state:boolean;
     onClose: () => void;
+    onAddDisciplineClick: () => void;
 }
 
 const tituloPartidos = [
@@ -332,16 +379,13 @@ const tituloPartidos = [
     {id:5 , titulo:'Estado'},
 ]
 
-function DetallesTorneos({state, isLoading, entryData, DeporteData, onClose}:ModalPropsTournaments){
+function DetallesTorneos({state, isLoading, entryData, DeporteData, onClose, onAddDisciplineClick}:ModalPropsTournaments){
     
-    // --- para cargar partidos ---
     const [selectedDisciplineId, setSelectedDisciplineId] = useState<number | null>(null);
     const [games, setGames] = useState<ApiGames[]>([]);
     const [loadingGames, setLoadingGames] = useState(false);
 
-    // --- Función para cargar partidos ---
     const handleDisciplineClick = async (disciplineId: number) => {
-        // Si ya está seleccionada, la oculta
         if (selectedDisciplineId === disciplineId) {
             setSelectedDisciplineId(null);
             setGames([]);
@@ -372,79 +416,123 @@ function DetallesTorneos({state, isLoading, entryData, DeporteData, onClose}:Mod
         <Modal state={state}>
             <ContainModal className='bg-white text-black'>
                 <HeaderModal onClose={onClose}>
-                    Detalles del Torneo
+                     <h3 className="text-xl font-bold mb-2">Detalles del Torneo</h3>
                 </HeaderModal>
-                <div > {/* Contenido del modal */}
+                <div >
                     
-                    {/* 1. Información del autor */}
                     <p><strong>Nombre del Torneo:</strong> {entryData?.nombre}</p>
                     <p><strong>Estado del Torneo:</strong> {entryData?.estado}</p>
                     <hr />
 
-                    {/* 2. Información del EQUIPO/JUGADOR (la que buscamos) */}
                     {isLoading ? (
                         <p>Cargando detalles del Torneo...</p>
                     )  : DeporteData ? (
                         // Caso Equipo
                         <div>
-                            <h3>Información del Creador</h3>
+                            <h3 className="text-lg font-bold mb-2">Información del Creador</h3>
                             <p><strong>Nombre:</strong> {DeporteData.creador.nombre}</p>
                             <p><strong>Rol:</strong> {DeporteData.creador.rol}</p>
                             <p><strong>Email:</strong> {DeporteData.creador.email}</p>
+                            <hr />
 
-                            <h3>Disciplinas del Torneo</h3>
                             <div>
-                                {DeporteData.disciplinas.map(discipline => (
-                                    <React.Fragment key={discipline.id}>
-                                        
-                                        <div 
-                                            className=' cursor-pointer bg-gray-200 p-[10px] my-[5px] flex justify-between items-center rounded-md'
-                                            onClick={() => handleDisciplineClick(discipline.id)}
-                                        >
-                                            <h3><strong>{discipline.nombre_deporte}</strong> ({discipline.categoria})</h3>
-                                            <div className={`relative size-4 ${selectedDisciplineId === discipline.id ? 'rotate-180' : 'rotate-0'}`}>
-                                                <Image
-                                                    className='mr-[5px]'
-                                                    src={'https://res.cloudinary.com/dnfvfft3w/image/upload/v1759101273/flecha-hacia-abajo-para-navegar_zixe1b.png'}
-                                                    alt="img"
-                                                    width={100}
-                                                    height={100}
-                                                />
-                                            </div>
-                                        </div>
+                                <h3 className="text-lg font-bold mb-2">Reglamento(s) del Torneo</h3>
+                                {DeporteData.reglamentos_torneo && DeporteData.reglamentos_torneo.length > 0 ? (
+                                    <ul className="list-disc pl-5 space-y-2">
+                                        {DeporteData.reglamentos_torneo.map(reg => (
+                                            <li key={reg.id}>
+                                                <a 
+                                                    href={reg.url_archivo} // Asume que el Resource envía la URL
+                                                    target="_blank" 
+                                                    rel="noopener noreferrer"
+                                                    className="text-blue-600 hover:underline"
+                                                >
+                                                    {reg.titulo} (Descargar)
+                                                </a>
+                                            </li>
+                                        ))}
+                                    </ul>
+                                ) : (
+                                    <p className="text-gray-500">No hay reglamentos generales para este torneo.</p>
+                                )}
+                            </div>
+                            <hr />
 
-                                        {selectedDisciplineId === discipline.id && (
-                                            <div className='mt-[2.5px]'>
-                                                {loadingGames ? (
-                                                    <p>Cargando partidos...</p>
-                                                ) : games.length > 0 ? (
-                                                    <Table className='my-1'>
-                                                        <TableHead >
-                                                            {tituloPartidos.map((titulo)=>(
-                                                                <TableCell key={titulo.id} className="text-white  bg-unimar first:rounded-l-lg last:rounded-r-lg p-4 justify-end font-semibold" >{titulo.titulo}</TableCell>
-                                                            ))}
-                                                         
-                                                            
-                                                        </TableHead>
-                                                        <TableBody>
-                                                            {games.map(game => (
-                                                                <TableRow key={game.id} className='bg-slate-200/50'>
-                                                                    <TableCell>{game.ronda}</TableCell>
-                                                                    <TableCell>{game.competidor_a.nombre}</TableCell>
-                                                                    <TableCell>{game.competidor_a.score ?? '-'} vs {game.competidor_b.score ?? '-'}</TableCell>
-                                                                    <TableCell>{game.competidor_b.nombre}</TableCell>
-                                                                    <TableCell>{game.estado}</TableCell>
-                                                                </TableRow>
-                                                            ))}
-                                                        </TableBody>
-                                                    </Table>
-                                                ) : (
-                                                    <p>No hay partidos programados.</p>
-                                                )}
+                            <div className='flex items-center justify-between my-3'>
+                                <h3 className="text-lg font-bold mb-2">Disciplinas del Torneo</h3>
+                                {entryData?.estado === 'proximo' && (
+                                    <Button 
+                                    className="bg-unimar flex gap-2 text-white text-sm px-3 py-2 rounded-lg"
+                                    onClick={onAddDisciplineClick}
+                                    >
+                                        <Image
+                                        className="size-5"
+                                            src={'/mas.png'}
+                                            alt="plus"
+                                            width={500}
+                                            height={500}
+                                    />
+                                    <p>Añadir Disciplina</p> 
+                                    </Button>
+                                )}
+                            </div>
+                        <div>
+                                {DeporteData.disciplinas.length>0?(
+                                    DeporteData.disciplinas.map(discipline => (
+                                        <React.Fragment key={discipline.id}>
+                                            
+                                            <div 
+                                                className=' cursor-pointer bg-gray-200 p-[10px] my-[5px] flex justify-between items-center rounded-md'
+                                                onClick={() => handleDisciplineClick(discipline.id)}
+                                            >
+                                                <h3><strong>{discipline.nombre_deporte}</strong> ({discipline.categoria})</h3>
+                                                <div className={`relative size-4 ${selectedDisciplineId === discipline.id ? 'rotate-180' : 'rotate-0'}`}>
+                                                    <Image
+                                                        className='mr-[5px]'
+                                                        src={'https://res.cloudinary.com/dnfvfft3w/image/upload/v1759101273/flecha-hacia-abajo-para-navegar_zixe1b.png'}
+                                                        alt="img"
+                                                        width={100}
+                                                        height={100}
+                                                    />
+                                                </div>
                                             </div>
-                                        )}
-                                    </React.Fragment>
-                                ))}
+
+                                            {selectedDisciplineId === discipline.id && (
+                                                <div className='mt-[2.5px]'>
+                                                    {loadingGames ? (
+                                                        <p>Cargando partidos...</p>
+                                                    ) : games.length > 0 ? (
+                                                        <Table className='my-1'>
+                                                            <TableHead >
+                                                                {tituloPartidos.map((titulo)=>(
+                                                                    <TableCell key={titulo.id} className="text-white  bg-unimar first:rounded-l-lg last:rounded-r-lg p-4 justify-end font-semibold" >{titulo.titulo}</TableCell>
+                                                                ))}
+                                                            
+                                                                
+                                                            </TableHead>
+                                                            <TableBody>
+                                                                {games.map(game => (
+                                                                    <TableRow key={game.id} className='bg-slate-200/50'>
+                                                                        <TableCell>{game.ronda}</TableCell>
+                                                                        <TableCell>{game.competidor_a.nombre}</TableCell>
+                                                                        <TableCell>{game.competidor_a.score ?? '-'} vs {game.competidor_b.score ?? '-'}</TableCell>
+                                                                        <TableCell>{game.competidor_b.nombre}</TableCell>
+                                                                        <TableCell>{game.estado}</TableCell>
+                                                                    </TableRow>
+                                                                ))}
+                                                            </TableBody>
+                                                        </Table>
+                                                    ) : (
+                                                        <p>No hay partidos programados.</p>
+                                                    )}
+                                                </div>
+                                            )}
+                                        </React.Fragment>
+                                    ))
+                                ):( 
+                                    <p className="text-gray-500 text-center p-4">No se han asignado disciplinas</p>
+                                )}
+                                
                             </div>
                             
 
