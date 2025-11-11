@@ -12,7 +12,7 @@ import {
   ContainModal,
   Modal
  } from '@/types/ui_components'
-
+import Modal_AddActivity from '@/components/sections_Dashboard/general/modal_Addactivity'
 
  interface ApiActivityList {
   id: number;
@@ -142,7 +142,6 @@ const buttons = [
     {id:3, button:"Eliminar", img:"/basura (1).png"}
 ]
 
-
 export default function page() {
       const [isSelectJ, setSelectJ] = useState('Tipos'); 
         const [isOpenJ, setIsOpenJ] = useState(false);
@@ -154,6 +153,8 @@ export default function page() {
     
         const [isEstate, setSelectE] = useState('Estados'); 
         const [isOpenE, setIsOpenE] = useState(false);
+
+        const [isAddModalOpen, setIsAddModalOpen] = useState(false);
     
             const handleSelectE = (id: number, label:string) => {
             setSelectE(label);
@@ -257,7 +258,9 @@ export default function page() {
 
                     <div className="Titulo flex justify-between mb-6">
                         <h3 className="text-2xl font-bold">Actividades Generales</h3>
-                        <Button className="bg-unimar flex place-items-center items-center gap-2 hover:bg-unimar/90 cursor-pointer h-10 text-white rounded-2xl px-6 py-7 md:py-2">
+                        <Button className="bg-unimar flex place-items-center items-center gap-2 hover:bg-unimar/90 cursor-pointer h-10 text-white rounded-2xl px-6 py-7 md:py-2"
+                            onClick={()=>setIsAddModalOpen(!isAddModalOpen)}
+                        >
                             <Image
                             className="size-5"
                                 src={'/mas.png'}
@@ -378,6 +381,15 @@ export default function page() {
                             activityData={selectedActivity}
                             isLoading={loadingModal}
                             onClose={() => setIsModalOpen(false)}
+                        />
+                    )}
+
+
+                    {isAddModalOpen && (
+                        <Modal_AddActivity
+                            state={isAddModalOpen}
+                            onClose={() => setIsAddModalOpen(false)}  
+                            //onActivityCreated={}  
                         />
                     )}
 

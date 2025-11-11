@@ -9,6 +9,7 @@ import {
   TableBody, TableCell, TableRow,
   TableHead, TableHeaderCell
  } from '@/types/ui_components';
+import Modal_AddSport from './modal_Addsport'
 
 export interface ApiSports {
   id: number;
@@ -23,7 +24,7 @@ const buttons = [
     {id:3, button:"Eliminar", img:"/basura (1).png"}
 ]
 
-const titlesreglas = [
+const titlesport = [
     {id:1,titulo:'Deporte'},
     {id:2,titulo:'Modo de Juego'},
     {id:3,titulo:'Descripción'},
@@ -31,14 +32,16 @@ const titlesreglas = [
 ]
 
 
-export default function table_sports() {
+export default function Table_Sports() {
 
       const [loading, setLoading] = useState(true);
       const [isSaving, setIsSaving] = useState(false);
       const [error, setError] = useState<string | null>(null);
       const [sportRegs, setSportRegs] = useState<ApiSports[]>([]);
 
-       const fetchSportRegs = async () => {
+      const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+
+       const fetchSport = async () => {
               setLoading(true);
               setError(null);
               const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api';
@@ -55,7 +58,7 @@ export default function table_sports() {
           };
       
           useEffect(() => {
-              fetchSportRegs();
+              fetchSport();
           }, []);
 
     if (loading) return <p className="text-center p-4">Cargando reglas de actividad...</p>;
@@ -67,7 +70,7 @@ export default function table_sports() {
         <div className="flex justify-between ">
             <h3 className="text-2xl font-bold mb-6">Deportes</h3>
             <Button className="bg-unimar flex items-center gap-2 hover:bg-unimar/90 cursor-pointer h-10 text-white rounded-2xl px-4 py-7 md:py-0"
-            
+                onClick={()=>setIsAddModalOpen(!isAddModalOpen)}
             >
                 <Image
                 className="size-5"
@@ -113,7 +116,7 @@ export default function table_sports() {
 
         <Table className="w-full">
             <TableHead className="text-gray-100  bg-unimar">
-                {titlesreglas.map((titulos)=>(
+                {titlesport.map((titulos)=>(
                     <TableHeaderCell key={titulos.id} className="first:rounded-l-lg last:rounded-r-lg p-4 justify-end font-semibold ">
                         {titulos.titulo}
                     </TableHeaderCell>
@@ -142,6 +145,16 @@ export default function table_sports() {
                 ))}
             </TableBody>
         </Table>    
+
+        {isAddModalOpen && (
+            <Modal_AddSport
+                state={isAddModalOpen}
+                onClose={() => setIsAddModalOpen(false)}
+                onSportCreated={() => {
+                    fetchSport(); // Refresca la tabla al guardar
+                }}
+            />
+        )}
 
     </div>
   )

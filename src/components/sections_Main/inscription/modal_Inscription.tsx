@@ -4,7 +4,7 @@ import { useEffect, useRef, useState, ChangeEvent, useMemo } from "react";
 import { Button, ContainModal, HeaderModal, FooterModal, Input, InputGroup } from "@/types/ui_components";
 import { motion, AnimatePresence } from "motion/react";
 import Image from "next/image";
-import UploadLogo from "@/components/ui/UpLoadLogo"; 
+import UploadLogo from "@/components/ui/UpLoad_IMG"; 
 
 interface ModalProps {
   onCloseExternal: () => void;

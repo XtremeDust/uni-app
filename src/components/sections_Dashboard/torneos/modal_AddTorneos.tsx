@@ -2,7 +2,7 @@
 import { useState, ChangeEvent } from "react";
 import { Button, ContainModal, HeaderModal, FooterModal, Input, InputGroup, Modal, TextArea } from "@/types/ui_components";
 import Image from "next/image";
-import UploadLogo from "@/components/ui/UpLoadLogo";
+import UploadLogo from "@/components/ui/UpLoad_IMG";
 
 interface ModalProps {
   state: boolean;
@@ -175,6 +175,7 @@ return (
           </div>
 
           <UploadLogo
+            label="Banner para el Torneo"
             file={formData.img}
             error={errors.img}
              onFileChange={(file: File | null) => {

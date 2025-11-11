@@ -71,6 +71,7 @@ import {
   interface ApiList{
     id:number
     estado: 'publico'|'privado';
+    email:string;
     fecha_creacion:string;
     autor:string;
     comentario_extracto:string;
@@ -79,6 +80,7 @@ import {
   interface APIcoment{
      id: number;
     comentario: string;
+    email:string;
     estado: string;
     autor: {
         id: number;
@@ -252,7 +254,7 @@ const API_URL = process.env.NEXT_PUBLIC_API_URL;
                                   <TableRow key={data.id} className="hover:bg-gray-100 text-center cursor-pointer"
                                     onClick={()=>handleVerDetalle(data)}
                                   >
-                                              <TableCell className="font-bold">{data.autor}</TableCell>
+                                              <TableCell className="font-bold">{data.autor || data.email}</TableCell>
                                               <TableCell className="overflow-hidden"><p>{data.comentario_extracto}</p></TableCell>
                                               <TableCell>{data.fecha_creacion}</TableCell>
                                               <TableCell className="place-items-center">
@@ -349,11 +351,11 @@ function DetalleSubs({ entryData, userData, isLoading, onClose, state }: ModalPr
                         )  : userData ? (
                             // Caso Equipo
                             <div>
-                                <h3>Información del autor</h3>
-                                <p><strong>Nombre:</strong> {userData.autor.nombre}</p>
-                                <p><strong>Cedula:</strong> {userData.autor.cedula}</p>
-                                <p><strong>Email:</strong> {userData.autor.email}</p>
-                                <p><strong>Telefono:</strong> {userData.autor.telefono}</p>
+                                <h3 className='text-lg font-semibold'>Información del autor</h3>                                
+                                <p className={`${userData.autor?.nombre ? '':'hidden'}`}><strong>Nombre:</strong> {userData.autor?.nombre}</p>
+                                <p className={`${userData.autor?.cedula ? '':'hidden'}`}><strong>Cedula:</strong> {userData.autor?.cedula}</p>
+                                <p><strong>Email:</strong> {userData.autor?.email || userData.email}</p>
+                                <p className={`${userData.autor?.telefono ? '':'hidden'}`}><strong>Telefono:</strong> {userData.autor?.telefono}</p>
 
                                 <div>
                                     <p>{userData.comentario}</p>

@@ -1,7 +1,7 @@
 'use client'
 import React, { useEffect, useState } from 'react'
 import Image from 'next/image'
-import Table_Games from '@/components/sections_Dashboard/Table_Games'
+import Table_Games from '@/components/sections_Dashboard/torneos/Table_Games'
 import Modal_addtorneos from '@/components/sections_Dashboard/torneos/modal_AddTorneos'
 import Modal_addDiscipline from '@/components/sections_Dashboard/modal_Adddisciplinas'
 
@@ -133,49 +133,47 @@ export default function page() {
     ...(isEstate !== 'Todos' ? [{ id: 0, label: 'Todos' }] : []),
     ...filteredEstate,
     ];
-        
 
-            const [loading, setLoading] = useState(true);
-            const [error, setError] = useState<string | null>(null);
-            
-            //modal
-            const [isModalOpenT, setModalOpenT] = useState(false);
-            const [loadingModal, setLoadingModal] = useState(false);
-            const [tournaments, setTournaments] = useState<ApiTournament[]>([]);
-            
-            const [selectedEntry, setSelectedEntry] = useState<ApiList | null>(null);
-            const [selectedT, setSelectedT]=useState< ApiTournament|null>(null);
-
-
-            //partidos
-            const [selectedDisciplineId, setSelectedDisciplineId] = useState<number | null>(null);
-            const [games, setGames] = useState<ApiGames[]>([]);
-            const [loadingGames, setLoadingGames] = useState(false);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
+    
+    //modal
+    const [isModalOpenT, setModalOpenT] = useState(false);
+    const [loadingModal, setLoadingModal] = useState(false);
+    const [tournaments, setTournaments] = useState<ApiTournament[]>([]);
+    
+    const [selectedEntry, setSelectedEntry] = useState<ApiList | null>(null);
+    const [selectedT, setSelectedT]=useState< ApiTournament|null>(null);
 
 
-        useEffect(() => {
-            async function fetchTournaments() {
-                setLoading(true);
-                setError(null);
-                 const API_URL = process.env.NEXT_PUBLIC_API_URL;
-                try {
-                    const response = await fetch(`${API_URL}/tournaments`);
-                    if (!response.ok) {
-                        throw new Error(`Error HTTP: ${response.statusText}`);
-                    }
-                    const jsonData = await response.json();
-                    setTournaments(jsonData.data);
-                } catch (e: any) {
-                    setError(e.message || "Error al cargar torneos");
-                } finally {
-                    setLoading(false);
+    //partidos
+    const [selectedDisciplineId, setSelectedDisciplineId] = useState<number | null>(null);
+    const [games, setGames] = useState<ApiGames[]>([]);
+    const [loadingGames, setLoadingGames] = useState(false);
+
+    useEffect(() => {
+        async function fetchTournaments() {
+            setLoading(true);
+            setError(null);
+                const API_URL = process.env.NEXT_PUBLIC_API_URL;
+            try {
+                const response = await fetch(`${API_URL}/tournaments`);
+                if (!response.ok) {
+                    throw new Error(`Error HTTP: ${response.statusText}`);
                 }
+                const jsonData = await response.json();
+                setTournaments(jsonData.data);
+            } catch (e: any) {
+                setError(e.message || "Error al cargar torneos");
+            } finally {
+                setLoading(false);
             }
-            fetchTournaments();
-        }, []);
+        }
+        fetchTournaments();
+    }, []);
 
-        if (loading) return <p>Cargando torneos...</p>;
-        if (error) return <p>Error: {error}</p>;
+    if (loading) return <p>Cargando torneos...</p>;
+    if (error) return <p>Error: {error}</p>;
 
     const API_URL = process.env.NEXT_PUBLIC_API_URL;
         const handleClickT= async (entryT:ApiList)=>{
@@ -349,7 +347,6 @@ export default function page() {
                     state={isAddDisciplineModalOpen}
                     onClose={() => setIsAddDisciplineModalOpen(false)}
                     onSaveSuccess={handleDisciplineCreated}
-                    // Pasa el ID del torneo que estaba seleccionado
                     tournamentId={selectedEntry.id} 
                 />
             )}

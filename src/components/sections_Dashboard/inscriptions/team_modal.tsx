@@ -3,7 +3,7 @@ import { useEffect, useRef, useState, ChangeEvent, useMemo } from "react";
 import { Button, ContainModal, HeaderModal, FooterModal, Input, InputGroup } from "@/types/ui_components";
 import { motion, AnimatePresence } from "motion/react";
 import Image from "next/image";
-import UploadLogo from "@/components/ui/UpLoadLogo";
+import UploadLogo from "@/components/ui/UpLoad_IMG";
 
 interface ModalProps {
     onCloseExternal: () => void;
@@ -554,6 +554,7 @@ export default function team_modal({onCloseExternal}:ModalProps) {
 
                             <div className="flex flex-col p-3 bg-gray-100 shadow rounded-xl">
                                 <UploadLogo
+                                label="Logo del equipo"
                                 file={teamData.logo}
                                 error={errors.logo}
                                 onFileChange={(file: File | null) => {
