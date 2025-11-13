@@ -384,7 +384,7 @@ export default function team_modal({onCloseExternal}:ModalProps) {
             </HeaderModal>
             <div className="p-4 text-center">
             <p className="text-gray-700 mt-2">{error}</p>
-            <Button onClick={handleCloseModal} className="mt-4 bg-unimar text-white">Cerrar</Button>
+            <Button onClick={handleCloseModal} className="mt-4 bg-unimar input px-4 py-1.5 cursor-pointer text-white">Cerrar</Button>
             </div>
         </ContainModal>
         );

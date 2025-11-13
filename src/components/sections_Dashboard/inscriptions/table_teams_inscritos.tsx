@@ -1,5 +1,5 @@
 'use client'
-import React, { MouseEventHandler, useEffect, useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import Image from 'next/image'
 import { 
   Input,
@@ -8,16 +8,11 @@ import {
   Table, 
   TableBody, TableCell, TableRow,
   TableHead, TableHeaderCell,
-  InputGroup,
-  TextArea,
   Modal,
-  ContainModal,
-  HeaderModal,
-  FooterModal
  } from '@/types/ui_components'
 import TeamModal from '@/components/sections_Dashboard/inscriptions/team_modal';
-import Table_Usuarios_Inscritos from '@/components/sections_Dashboard/inscriptions/table_usuarios_inscritos';
-import Table_Subscripts from '@/components/sections_Dashboard/inscriptions/table_subscripts';
+import DetalleEquipoModal from '@/components/sections_Dashboard/inscriptions/modal_DetallesEquipo'
+import ModalCambioEstado from '@/components/sections_Dashboard/inscriptions/modal_CambioEstado'
 
 interface ApiUser {
   id: number;
@@ -288,116 +283,128 @@ export default function table_teams_inscritos() {
                       <h3 className="font-semibold">Añadir Equipo</h3>
                 </Button>
             </div>
-            <div className="flex flex-col sm:grid sm:grid-cols-2 lg:grid lg:grid-cols-2 xl:flex xl:flex-row items-center mb-6 gap-3 shadow p-3 bg-gray-800/8 rounded-2xl">
-                <div className="relative w-full flex col-span-2">
-                    <label htmlFor='buscar' className="h-full place-content-center absolute left-0 px-2 pl-3.5 cursor-pointer rounded-2xl">
-                        <Image
-                            className="size-8"
-                            src={'/lupa.png'}
-                            alt="buscar"
-                            width={60}
-                            height={60}
-                        />
-                    </label>
-                    <Input type="text" id="buscar" className="bg-gray-50 focus:ring-[1px]  focus:ring-unimar focus:outline-none ring ring-gray-400 shadow-md rounded-2xl w-full pl-18 pr-3 py-3" placeholder="Buscar" required/>
-                    
-                        <Button className="h-full items-center px-2 pr-4 absolute right-0 rounded-2xl cursor-pointer ">
+
+
+
+            {teams.length > 0 ?(
+                <>
+                <div className="flex flex-col sm:grid sm:grid-cols-2 lg:grid lg:grid-cols-2 xl:flex xl:flex-row items-center mb-6 gap-3 shadow p-3 bg-gray-800/8 rounded-2xl">
+                    <div className="relative w-full flex col-span-2">
+                        <label htmlFor='buscar' className="h-full place-content-center absolute left-0 px-2 pl-3.5 cursor-pointer rounded-2xl">
                             <Image
-                                className="size-4"
-                                src={'/cerca.png'}
+                                className="size-8"
+                                src={'/lupa.png'}
                                 alt="buscar"
                                 width={60}
                                 height={60}
                             />
-                        </Button>
-                </div>
-                <div className="w-full md:w-auto bg-gray-50 focus:ring-[1px] focus:ring-unimar focus:outline-none ring ring-gray-400 shadow-md rounded-2xl">
+                        </label>
+                        <Input type="text" id="buscar" className="bg-gray-50 focus:ring-[1px]  focus:ring-unimar focus:outline-none ring ring-gray-400 shadow-md rounded-2xl w-full pl-18 pr-3 py-3" placeholder="Buscar" required/>
+                        
+                            <Button className="h-full items-center px-2 pr-4 absolute right-0 rounded-2xl cursor-pointer ">
+                                <Image
+                                    className="size-4"
+                                    src={'/cerca.png'}
+                                    alt="buscar"
+                                    width={60}
+                                    height={60}
+                                />
+                            </Button>
+                    </div>
+                    <div className="w-full md:w-auto bg-gray-50 focus:ring-[1px] focus:ring-unimar focus:outline-none ring ring-gray-400 shadow-md rounded-2xl">
+                            <Select
+                                    className="bg-gray-50 focus:ring-[1px] focus:ring-unimar focus:outline-none ring ring-gray-400 shadow-md rounded-2xl w-full pl-6 pr-3 py-3"
+                                    options={dropdownCat}
+                                    currentValue={isCat}
+                                    isOpen={isOpenCat}
+                                    setOpen={setisCat} 
+                                    onSelect={handleSelectCat}
+                                    placeholder="Seleccione una categoria"
+                            /> 
+                    </div>
+                    <div className="w-full md:w-auto bg-gray-50 focus:ring-[1px] focus:ring-unimar focus:outline-none ring ring-gray-400 shadow-md rounded-2xl">
                         <Select
                                 className="bg-gray-50 focus:ring-[1px] focus:ring-unimar focus:outline-none ring ring-gray-400 shadow-md rounded-2xl w-full pl-6 pr-3 py-3"
-                                options={dropdownCat}
-                                currentValue={isCat}
-                                isOpen={isOpenCat}
-                                setOpen={setisCat} 
-                                onSelect={handleSelectCat}
-                                placeholder="Seleccione una categoria"
-                        /> 
+                                options={dropdownEst}
+                                currentValue={isEst}
+                                isOpen={isOpenEst}
+                                setOpen={setisEst} 
+                                onSelect={handleSelectEst}
+                                placeholder="Seleccione el tipo de juego"
+                        />
+                    </div>    
                 </div>
-                <div className="w-full md:w-auto bg-gray-50 focus:ring-[1px] focus:ring-unimar focus:outline-none ring ring-gray-400 shadow-md rounded-2xl">
-                    <Select
-                            className="bg-gray-50 focus:ring-[1px] focus:ring-unimar focus:outline-none ring ring-gray-400 shadow-md rounded-2xl w-full pl-6 pr-3 py-3"
-                            options={dropdownEst}
-                            currentValue={isEst}
-                            isOpen={isOpenEst}
-                            setOpen={setisEst} 
-                            onSelect={handleSelectEst}
-                            placeholder="Seleccione el tipo de juego"
-                    />
-                </div>    
-            </div>
 
-            <Table className="w-full">
-                <TableHead className="text-gray-100  bg-unimar">
-                    {titlequipos.map((titulos)=>(
-                        <TableHeaderCell key={titulos.id} className="first:rounded-l-lg last:rounded-r-lg p-4 justify-center text-center font-semibold ">
-                            {titulos.titulo}
-                        </TableHeaderCell>
-                    ))}
-                </TableHead>
+                <Table className="w-full">
+                    <TableHead className="text-gray-100  bg-unimar">
+                        {titlequipos.map((titulos)=>(
+                            <TableHeaderCell key={titulos.id} className="first:rounded-l-lg last:rounded-r-lg p-4 justify-center text-center font-semibold ">
+                                {titulos.titulo}
+                            </TableHeaderCell>
+                        ))}
+                    </TableHead>
 
-                <TableBody className="bg-white divide-y divide-gray-200">
-                    {teams.map((entry)=>(
-                        <TableRow key={entry.id} className="cursor-pointer hover:bg-gray-100 text-center"
-                            onClick={() => handleVerDetalles(entry)}
-                          >
-                            <TableCell className="font-bold">{entry.nombre}</TableCell>
-                            <TableCell>{entry.disciplina}</TableCell>
-                            <TableCell>{entry.categoria}</TableCell>
-                            <TableCell>{entry.integrantes_total}</TableCell>
-                            <TableCell onClick={(e)=>{
-                                e.stopPropagation()
-                            }}
-                                  className="place-items-center">
-                                <Button onClick={()=>{
-                                    if (entry.estado === 'Pendiente') {
-                                        handleChangeStateClick(entry);
-                                    } else {
-                                        alert("Solo se pueden modificar las inscripciones en estado 'Pendiente'.");
+                    <TableBody className="bg-white divide-y divide-gray-200">
+                        {teams.map((entry)=>(
+                            <TableRow key={entry.id} className="cursor-pointer hover:bg-gray-100 text-center"
+                                onClick={() => handleVerDetalles(entry)}
+                            >
+                                <TableCell className="font-bold">{entry.nombre}</TableCell>
+                                <TableCell>{entry.disciplina}</TableCell>
+                                <TableCell>{entry.categoria}</TableCell>
+                                <TableCell>{entry.integrantes_total}</TableCell>
+                                <TableCell onClick={(e)=>{
+                                    e.stopPropagation()
+                                }}
+                                    className="place-items-center">
+                                    <Button onClick={()=>{
+                                        if (entry.estado === 'Pendiente') {
+                                            handleChangeStateClick(entry);
+                                        } else {
+                                            alert("Solo se pueden modificar las inscripciones en estado 'Pendiente'.");
+                                        }
                                     }
-                                }
-                                }
-                                  className={`items-center rounded-full px-4 py-2 font-semibold text-gray-950
-                                      ${entry.estado==='Aceptado'? ' bg-green-200/65 text-green-800' :
-                                    (entry.estado==='Rechazado'? 'bg-red-200/65 text-red-800': 'bg-yellow-200/65 text-yellow-800')}`}>
-                                    {entry.estado}
-                                  </Button>
-                            </TableCell>
-                            <TableCell className="space-x-2 flex justify-evenly text-white">
-                                {buttons.map((btn)=>(
-                                    <div key={btn.id}
-                                        onClick={(e) => {
-                                          e.stopPropagation();
-                                        }}
-                                    >
-                                        <Button className={`btn rounded-lg cursor-pointer size-12 ${btn.id ===1? 'hover:bg-unimar/10' : (btn.id===2? 'hover:bg-gray-300/50': 'hover:bg-rose-300/50' )}`}
-                                            onClick={() => { 
-                                                handleActionClick(btn.id, entry.nombre)
+                                    }
+                                    className={`items-center rounded-full px-4 py-2 font-semibold text-gray-950
+                                        ${entry.estado==='Aceptado'? ' bg-green-200/65 text-green-800' :
+                                        (entry.estado==='Rechazado'? 'bg-red-200/65 text-red-800': 'bg-yellow-200/65 text-yellow-800')}`}>
+                                        {entry.estado}
+                                    </Button>
+                                </TableCell>
+                                <TableCell className="space-x-2 flex justify-evenly text-white">
+                                    {buttons.map((btn)=>(
+                                        <div key={btn.id}
+                                            onClick={(e) => {
+                                            e.stopPropagation();
                                             }}
                                         >
-                                            <Image
-                                                className='scale-110'
-                                                src={btn.img}
-                                                alt={btn.button}
-                                                width={500}
-                                                height={500}
-                                            />
-                                        </Button>
-                                    </div>
-                                ))}
-                            </TableCell>
-                        </TableRow>
-                    ))}
-                </TableBody>
-            </Table>                               
+                                            <Button className={`btn rounded-lg cursor-pointer size-12 ${btn.id ===1? 'hover:bg-unimar/10' : (btn.id===2? 'hover:bg-gray-300/50': 'hover:bg-rose-300/50' )}`}
+                                                onClick={() => { 
+                                                    handleActionClick(btn.id, entry.nombre)
+                                                }}
+                                            >
+                                                <Image
+                                                    className='scale-110'
+                                                    src={btn.img}
+                                                    alt={btn.button}
+                                                    width={500}
+                                                    height={500}
+                                                />
+                                            </Button>
+                                        </div>
+                                    ))}
+                                </TableCell>
+                            </TableRow>
+                        ))}
+                    </TableBody>
+                </Table>  
+                </>
+            ):(
+                <div className='justify-items-center text-xl font-semibold text-unimar'>
+                    <p className='pb-2'>No se han inscrito equipos</p>
+                    <hr className='bg-unimar w-full'/>
+                </div>
+            )}                             
         </div>
 
     {/* --- El Modal de equipos --- */}
@@ -435,144 +442,3 @@ export default function table_teams_inscritos() {
   )
 }
 
-interface ModalProps {
-    entryData: ApiTeam | null;
-    teamData: ApiTeam | null;
-    isLoading: boolean;
-    state:boolean;
-    onClose: () => void;
-}
-
-function DetalleEquipoModal({ entryData, teamData, isLoading, onClose, state }: ModalProps) {
-    if (!entryData) return null;
-
-    const esIndividual = !!entryData.user_id_for_modal;
-
-    return (
-        <Modal state={state}>
-            <ContainModal className='bg-white'>
-                <HeaderModal className="flex-none" onClose={onClose}>
-                    <div className="text-start">
-                        <h2 className="ml-5 title">Detalles de la Inscripción</h2>
-                    </div>
-                </HeaderModal>
-                <div >
-                    <div >
-                        <p><strong>Torneo:</strong> {entryData.torneo}</p>
-                        <p><strong>Deporte:</strong> {entryData.disciplina}</p>
-                        <p><strong>Categoría:</strong> {entryData.categoria}</p>
-                        <p><strong>Estado:</strong> {entryData.estado}</p>
-                        <hr />
-                        {isLoading ? (
-                            <p>Cargando detalles del competidor...</p>
-                        ) : esIndividual ? (
-                            // Caso Individual
-                            <div>
-                                <h3>Jugador Individual</h3>
-                                <p><strong>Nombre:</strong> {entryData.nombre}</p>
-                                
-                            </div>
-                        ) : teamData ? (
-                            // Caso Equipo
-                            <div>
-                                <h3>Detalles del Equipo</h3>
-                                <p><strong>Nombre:</strong> {teamData.nombre}</p>
-                                <p><strong>Capitán:</strong> {teamData.captain?.nombre || 'No asignado'}</p>
-                                <p><strong>Color:</strong> {teamData.color}</p>
-                                <p><strong>Imagen</strong>{teamData.logo}</p>                                
-                                <h4>Integrantes ({teamData.integrantes_total}):</h4>
-                                <ul>
-                                    {teamData.integrantes_data.map(member => (
-                                        <li key={member.id}>
-                                        {member.id} {member.nombre} {member.cedula} ({member.email})
-                                        </li>
-                                    ))}
-                                </ul>
-                            </div>
-                        ) : (
-                            <p>No se pudieron cargar los detalles del equipo.</p>
-                        )}
-                    </div>
-                </div>
-            </ContainModal>
-        </Modal>
-    );
-}
-
-interface ModalCambioEstadoProps {
-  teamName: string;
-  currentState: 'Aceptado' | 'Rechazado' | 'Pendiente';
-  state: boolean;
-  onClose: () => void;
-  onSave: (newState: string) => void;
-  isLoading: boolean;
-}
-
-function ModalCambioEstado({
-  teamName,
-  currentState,
-  state,
-  onClose,
-  onSave,
-  isLoading,
-}: ModalCambioEstadoProps) {
-
-  const [newState, setNewState] = useState(currentState);
-  const [isSelectOpen, setIsSelectOpen] = useState(false);
-  
-  const options = [
-    { id: 1, label: "Aceptado" },
-    { id: 2, label: "Rechazado" },
-  ];
-
-  const filteredOptions = options.filter(opt => opt.label !== newState);
-
-    const handleLocalSelect = (id: number, label: string) => {
-        setNewState(label as 'Aceptado' | 'Rechazado');
-        setIsSelectOpen(false);
-    };
-
-  return (
-    <Modal state={state}>
-      <ContainModal className="w-full max-w-md bg-white rounded-2xl shadow-lg">
-        <HeaderModal onClose={onClose}>
-            <h2 className="text-xl font-bold text-gray-800">Cambiar Estado</h2>
-        </HeaderModal>
-        
-        <div className="p-6">
-          <p className="mb-4 text-gray-700">
-            <strong>Equipo:</strong> {teamName}
-          </p>
-
-          <InputGroup label="Nuevo Estado" For="estado" className='mb-3'>
-            <Select
-                className="bg-gray-50 focus:ring-[1px] focus:ring-unimar focus:outline-none ring ring-gray-300 shadow-sm rounded-lg w-full pl-3 pr-3 py-3"
-                options={filteredOptions}
-                currentValue={newState}
-                isOpen={isSelectOpen}       
-                setOpen={setIsSelectOpen}   
-                onSelect={handleLocalSelect}
-                placeholder="Seleccionar estado"
-            />
-          </InputGroup> 
-
-          {newState==='Rechazado' &&(
-            <div>
-                <InputGroup label="Deje un Comentario" For="Comentario">
-                     <TextArea id="Comentario" className="h-[8rem] input " placeholder="Escribe tu comentario aquí..."/>       
-                </InputGroup> 
-            </div>
-          )}
-        </div>
-
-        <FooterModal 
-            BTmain="Guardar Cambios"
-            BTSecond="Cancelar"
-            onClose={onClose}
-            onSumit={() => onSave(newState)}
-            disabled={isLoading} 
-        />
-      </ContainModal>
-    </Modal>
-  );
-}

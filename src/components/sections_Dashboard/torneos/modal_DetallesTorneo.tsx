@@ -1,0 +1,253 @@
+import React, { useEffect, useState } from 'react'
+import Image from 'next/image'
+import { 
+  Button, 
+  Table, 
+  TableBody, TableCell, TableRow,
+  TableHead, TableHeaderCell,
+  Modal,
+  HeaderModal,
+  ContainModal
+ } from '@/types/ui_components'
+
+interface ModalPropsTournaments {
+    entryData: ApiList | null;
+    DeporteData: ApiTournament | null;
+    isLoading: boolean;
+    state:boolean;
+    onClose: () => void;
+    onAddDisciplineClick: () => void;
+}
+
+interface ApiRegulation {
+  id: number;
+  titulo: string;
+  url_archivo: string;
+}
+
+interface Creador {
+  id: number;
+  nombre: string;
+  email: string;
+  rol: string;
+  cedula: string;
+  telefono: string;
+}
+
+  interface ApiList{
+    id:number
+    nombre:string;
+    estado: 'proximo'|'activo' | 'finalizado';
+    inicio:string;
+    fin:string;
+  total_disiplinas: string; 
+  }
+
+interface ApiTournament {
+  id: number;
+  nombre: string;
+  descripcion: string;
+  estado: 'proximo' | 'activo' | 'finalizado'; 
+  creador: Creador;
+  total_disiplinas: string; 
+  inicio: string;
+  fin: string;
+  disciplinas:ApiDiscipline[];
+  reglamentos_torneo:ApiRegulation[];
+}
+
+interface ApiDiscipline{
+    id:number;
+    categoria:string;
+    modo_juego:string;
+    nombre_deporte:string;
+}
+
+interface ApiCompetidor{
+  entry_id: number | null;
+  nombre: string;
+  score: number | null;
+}
+
+interface ApiGames{
+  id: number;
+  estado: string;
+  fecha: string;
+  ronda: number;
+  competidor_a: ApiCompetidor;
+  competidor_b: ApiCompetidor;
+}
+
+const tituloPartidos = [
+    {id:1 , titulo:'Ronda'},
+    {id:2 , titulo:'Competidor A'},
+    {id:3 , titulo:'Resultado'},
+    {id:4 , titulo:'Competidor B'},
+    {id:5 , titulo:'Estado'},
+]
+
+export default function modal_DetallesTorneo({state, isLoading, entryData, DeporteData, onClose, onAddDisciplineClick}:ModalPropsTournaments) {
+    const [selectedDisciplineId, setSelectedDisciplineId] = useState<number | null>(null);
+    const [games, setGames] = useState<ApiGames[]>([]);
+    const [loadingGames, setLoadingGames] = useState(false);
+
+    const handleDisciplineClick = async (disciplineId: number) => {
+        if (selectedDisciplineId === disciplineId) {
+            setSelectedDisciplineId(null);
+            setGames([]);
+            return;
+        }
+
+        setSelectedDisciplineId(disciplineId);
+        setLoadingGames(true);
+        setGames([]);
+
+        try {
+            const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api';
+            // Llama a la API de partidos filtrada
+            const res = await fetch(`${API_URL}/games?discipline_id=${disciplineId}`); 
+            if (!res.ok) throw new Error(`Error en API Games: ${res.statusText}`);
+            
+            const jsonData = await res.json();
+            setGames(jsonData.data);
+            
+        } catch (e) {
+            console.error("Error al cargar partidos:", e);
+        } finally {
+            setLoadingGames(false);
+        }
+    };
+    
+    return(
+        <Modal state={state}>
+            <ContainModal className='bg-white text-black'>
+                <HeaderModal onClose={onClose}>
+                     <h3 className="text-xl font-bold mb-2">Detalles del Torneo</h3>
+                </HeaderModal>
+                <div >
+                    
+                    <p><strong>Nombre del Torneo:</strong> {entryData?.nombre}</p>
+                    <p><strong>Estado del Torneo:</strong> {entryData?.estado}</p>
+                    <hr />
+
+                    {isLoading ? (
+                        <p>Cargando detalles del Torneo...</p>
+                    )  : DeporteData ? (
+                        // Caso Equipo
+                        <div>
+                            <h3 className="text-lg font-bold mb-2">Información del Creador</h3>
+                            <p><strong>Nombre:</strong> {DeporteData.creador.nombre}</p>
+                            <p><strong>Rol:</strong> {DeporteData.creador.rol}</p>
+                            <p><strong>Email:</strong> {DeporteData.creador.email}</p>
+                            <hr />
+
+                            <div>
+                                <h3 className="text-lg font-bold mb-2">Reglamento(s) del Torneo</h3>
+                                {DeporteData.reglamentos_torneo && DeporteData.reglamentos_torneo.length > 0 ? (
+                                    <ul className="list-disc pl-5 space-y-2">
+                                        {DeporteData.reglamentos_torneo.map(reg => (
+                                            <li key={reg.id}>
+                                                <a 
+                                                    href={reg.url_archivo} // Asume que el Resource envía la URL
+                                                    target="_blank" 
+                                                    rel="noopener noreferrer"
+                                                    className="text-blue-600 hover:underline"
+                                                >
+                                                    {reg.titulo} (Descargar)
+                                                </a>
+                                            </li>
+                                        ))}
+                                    </ul>
+                                ) : (
+                                    <p className="text-gray-500">No hay reglamentos generales para este torneo.</p>
+                                )}
+                            </div>
+                            <hr />
+
+                            <div className='flex items-center justify-between my-3'>
+                                <h3 className="text-lg font-bold mb-2">Disciplinas del Torneo</h3>
+                                {entryData?.estado === 'proximo' && (
+                                    <Button 
+                                    className="bg-unimar flex gap-2 text-white text-sm px-3 py-2 rounded-lg"
+                                    onClick={onAddDisciplineClick}
+                                    >
+                                        <Image
+                                        className="size-5"
+                                            src={'/mas.png'}
+                                            alt="plus"
+                                            width={500}
+                                            height={500}
+                                    />
+                                    <p>Añadir Disciplina</p> 
+                                    </Button>
+                                )}
+                            </div>
+                        <div>
+                                {DeporteData.disciplinas.length>0?(
+                                    DeporteData.disciplinas.map(discipline => (
+                                        <React.Fragment key={discipline.id}>
+                                            
+                                            <div 
+                                                className=' cursor-pointer bg-gray-200 p-[10px] my-[5px] flex justify-between items-center rounded-md'
+                                                onClick={() => handleDisciplineClick(discipline.id)}
+                                            >
+                                                <h3><strong>{discipline.nombre_deporte}</strong> ({discipline.categoria})</h3>
+                                                <div className={`relative size-4 ${selectedDisciplineId === discipline.id ? 'rotate-180' : 'rotate-0'}`}>
+                                                    <Image
+                                                        className='mr-[5px]'
+                                                        src={'https://res.cloudinary.com/dnfvfft3w/image/upload/v1759101273/flecha-hacia-abajo-para-navegar_zixe1b.png'}
+                                                        alt="img"
+                                                        width={100}
+                                                        height={100}
+                                                    />
+                                                </div>
+                                            </div>
+
+                                            {selectedDisciplineId === discipline.id && (
+                                                <div className='mt-[2.5px]'>
+                                                    {loadingGames ? (
+                                                        <p>Cargando partidos...</p>
+                                                    ) : games.length > 0 ? (
+                                                        <Table className='my-1'>
+                                                            <TableHead >
+                                                                {tituloPartidos.map((titulo)=>(
+                                                                    <TableCell key={titulo.id} className="text-white  bg-unimar first:rounded-l-lg last:rounded-r-lg p-4 justify-end font-semibold" >{titulo.titulo}</TableCell>
+                                                                ))}
+                                                            
+                                                                
+                                                            </TableHead>
+                                                            <TableBody>
+                                                                {games.map(game => (
+                                                                    <TableRow key={game.id} className='bg-slate-200/50'>
+                                                                        <TableCell>{game.ronda}</TableCell>
+                                                                        <TableCell>{game.competidor_a.nombre}</TableCell>
+                                                                        <TableCell>{game.competidor_a.score ?? '-'} vs {game.competidor_b.score ?? '-'}</TableCell>
+                                                                        <TableCell>{game.competidor_b.nombre}</TableCell>
+                                                                        <TableCell>{game.estado}</TableCell>
+                                                                    </TableRow>
+                                                                ))}
+                                                            </TableBody>
+                                                        </Table>
+                                                    ) : (
+                                                        <p>No hay partidos programados.</p>
+                                                    )}
+                                                </div>
+                                            )}
+                                        </React.Fragment>
+                                    ))
+                                ):( 
+                                    <p className="text-gray-500 text-center p-4">No se han asignado disciplinas</p>
+                                )}
+                                
+                            </div>
+                            
+
+                        </div>
+                    ) : (
+                        <p>No se pudieron cargar los detalles del torneo.</p>
+                    )}
+                </div>
+            </ContainModal>
+        </Modal>
+    );
+}

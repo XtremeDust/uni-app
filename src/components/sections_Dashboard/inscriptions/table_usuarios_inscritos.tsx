@@ -1,21 +1,13 @@
 'use client'
-import React, { MouseEventHandler, useEffect, useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import Image from 'next/image'
 import { 
   Input,
   Button, 
-  Select, 
   Table, 
   TableBody, TableCell, TableRow,
   TableHead, TableHeaderCell,
-  InputGroup,
-  TextArea,
-  Modal,
-  ContainModal,
-  HeaderModal,
-  FooterModal
  } from '@/types/ui_components'
-import TeamModal from '@/components/sections_Dashboard/inscriptions/team_modal';
 
 const titleintegrantes = [
     {id:1, titulo:"Usuario"},
@@ -75,9 +67,7 @@ export default function table_usuarios_inscritos() {
 
                 const userTeamData = await userTeamsRes.json();
                 //const teamsData = await teamsRes.json();
-
-                // 3. Guardamos los datos
-                // Nota: Laravel API Resources envuelven la colección en una clave 'data'
+                
                 //setTeams(teamsData.data); 
                 setUserTeam(userTeamData.data);
 
@@ -102,73 +92,80 @@ export default function table_usuarios_inscritos() {
         <div className="bg-white p-6 rounded-lg shadow col-span-2">
             <h3 className="text-2xl font-bold mb-6">Usuarios Inscritos</h3>
 
-            <div className="Filtro flex items-center mb-6 gap-3 shadow p-3 bg-gray-800/8 rounded-2xl">
-                
-                    <div className="relative w-full flex ">
-                        <label htmlFor='buscar' className="h-full place-content-center absolute left-0 px-2 pl-3.5 cursor-pointer rounded-2xl">
-                            <Image
-                                className="size-8"
-                                src={'/lupa.png'}
-                                alt="buscar"
-                                width={60}
-                                height={60}
-                            />
-                        </label>
-                        <Input type="text" id="buscar" className="bg-gray-50 focus:ring-[1px]  focus:ring-unimar focus:outline-none ring ring-gray-400 shadow-md rounded-2xl w-full pl-18 pr-3 py-3" placeholder="Buscar" required/>
-                        
-                            <Button className="h-full items-center px-2 pr-4 absolute right-0 rounded-2xl cursor-pointer ">
+            {userTeam.length > 0 ?(
+                <>
+                    <div className="Filtro flex items-center mb-6 gap-3 shadow p-3 bg-gray-800/8 rounded-2xl">             
+                        <div className="relative w-full flex ">
+                            <label htmlFor='buscar' className="h-full place-content-center absolute left-0 px-2 pl-3.5 cursor-pointer rounded-2xl">
                                 <Image
-                                    className="size-4"
-                                    src={'/cerca.png'}
+                                    className="size-8"
+                                    src={'/lupa.png'}
                                     alt="buscar"
                                     width={60}
                                     height={60}
                                 />
-                            </Button>
+                            </label>
+                            <Input type="text" id="buscar" className="bg-gray-50 focus:ring-[1px]  focus:ring-unimar focus:outline-none ring ring-gray-400 shadow-md rounded-2xl w-full pl-18 pr-3 py-3" placeholder="Buscar" required/>
+                            
+                                <Button className="h-full items-center px-2 pr-4 absolute right-0 rounded-2xl cursor-pointer ">
+                                    <Image
+                                        className="size-4"
+                                        src={'/cerca.png'}
+                                        alt="buscar"
+                                        width={60}
+                                        height={60}
+                                    />
+                                </Button>
+                        </div>
                     </div>
-            </div>
-                
 
-            <Table className="w-full">
-                <TableHead className="text-gray-100  bg-unimar">
-                    {titleintegrantes.map((titulos)=>(
-                        <TableHeaderCell key={titulos.id} className="first:rounded-l-lg last:rounded-r-lg p-4 justify-center text-center font-semibold ">
-                            {titulos.titulo}
-                        </TableHeaderCell>
-                    ))}
-                </TableHead>
-
-                <TableBody className="bg-white divide-y divide-gray-200">
-                    {userTeam.map((data)=>(
-                        <React.Fragment key={data.id}>
-                            {data.integrantes_data?.map((person:any)=>(
-                                <TableRow key={person.id || person.email} className="hover:bg-gray-100 text-center">
-                                        <>
-                                            <TableCell className="font-bold">{person.email}</TableCell>
-                                            <TableCell>{person.cedula}</TableCell>
-                                            <TableCell>{person.telefono}</TableCell>
-                                            <TableCell>{data.nombre}</TableCell>
-                                            <TableCell className="space-x-2 flex justify-evenly text-white">
-                                                {buttons.map((btn)=>(
-                                                    <Button key={btn.id} className={`btn rounded-lg cursor-pointer size-12 ${btn.id ===1? 'hover:bg-unimar/10' : (btn.id===2? 'hover:bg-gray-300/50': 'hover:bg-rose-300/50' )}`}>
-                                                        <Image
-                                                            className='scale-110'
-                                                            src={btn.img}
-                                                            alt={btn.button}
-                                                            width={500}
-                                                            height={500}
-                                                        />
-                                                    </Button>
-                                                ))}
-                                            </TableCell>
-                                        </>
-                                </TableRow>
+                    <Table className="w-full">
+                        <TableHead className="text-gray-100  bg-unimar">
+                            {titleintegrantes.map((titulos)=>(
+                                <TableHeaderCell key={titulos.id} className="first:rounded-l-lg last:rounded-r-lg p-4 justify-center text-center font-semibold ">
+                                    {titulos.titulo}
+                                </TableHeaderCell>
                             ))}
+                        </TableHead>
 
-                        </React.Fragment>
-                    ))}
-                </TableBody>
-            </Table>                                 
+                        <TableBody className="bg-white divide-y divide-gray-200">
+                            {userTeam.map((data)=>(
+                                <React.Fragment key={data.id}>
+                                    {data.integrantes_data?.map((person:any)=>(
+                                        <TableRow key={person.id || person.email} className="hover:bg-gray-100 text-center">
+                                                <>
+                                                    <TableCell className="font-bold">{person.email}</TableCell>
+                                                    <TableCell>{person.cedula}</TableCell>
+                                                    <TableCell>{person.telefono}</TableCell>
+                                                    <TableCell>{data.nombre}</TableCell>
+                                                    <TableCell className="space-x-2 flex justify-evenly text-white">
+                                                        {buttons.map((btn)=>(
+                                                            <Button key={btn.id} className={`btn rounded-lg cursor-pointer size-12 ${btn.id ===1? 'hover:bg-unimar/10' : (btn.id===2? 'hover:bg-gray-300/50': 'hover:bg-rose-300/50' )}`}>
+                                                                <Image
+                                                                    className='scale-110'
+                                                                    src={btn.img}
+                                                                    alt={btn.button}
+                                                                    width={500}
+                                                                    height={500}
+                                                                />
+                                                            </Button>
+                                                        ))}
+                                                    </TableCell>
+                                                </>
+                                        </TableRow>
+                                    ))}
+
+                                </React.Fragment>
+                            ))}
+                        </TableBody>
+                    </Table>                                 
+                </>
+            ):(
+                <div className='justify-items-center text-xl font-semibold text-unimar'>
+                    <p className='pb-2'>No se han inscrito usuarios</p>
+                    <hr className='bg-unimar w-full'/>
+                </div>
+            )}
         </div>
 
     </section>

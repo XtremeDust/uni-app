@@ -91,87 +91,95 @@ export default function Tabla_Rsport() {
             </Button>
         </div>
 
-        <div className="Filtro grid grid-rows-2 md:flex items-center mb-6 gap-3 shadow p-3 bg-gray-800/8 rounded-2xl">
-            
-                <div className="relative w-full flex ">
-                    <label htmlFor='buscar' className="h-full place-content-center absolute left-0 px-2 pl-3.5 cursor-pointer rounded-2xl">
-                        <Image
-                            className="size-8"
-                            src={'/lupa.png'}
-                            alt="buscar"
-                            width={60}
-                            height={60}
-                        />
-                    </label>
-                    <Input type="text" id="buscar" className="bg-gray-50 focus:ring-[1px]  focus:ring-unimar focus:outline-none ring ring-gray-400 shadow-md rounded-2xl w-full pl-18 pr-3 py-3" placeholder="Buscar" required/>
+        {sportRegs.length > 0 ?(
+            <>
+                <div className="Filtro grid grid-rows-2 md:flex items-center mb-6 gap-3 shadow p-3 bg-gray-800/8 rounded-2xl">
                     
-                        <Button className="h-full items-center px-2 pr-4 absolute right-0 rounded-2xl cursor-pointer ">
-                            <Image
-                                className="size-4"
-                                src={'/cerca.png'}
-                                alt="buscar"
-                                width={60}
-                                height={60}
-                            />
-                        </Button>
+                        <div className="relative w-full flex ">
+                            <label htmlFor='buscar' className="h-full place-content-center absolute left-0 px-2 pl-3.5 cursor-pointer rounded-2xl">
+                                <Image
+                                    className="size-8"
+                                    src={'/lupa.png'}
+                                    alt="buscar"
+                                    width={60}
+                                    height={60}
+                                />
+                            </label>
+                            <Input type="text" id="buscar" className="bg-gray-50 focus:ring-[1px]  focus:ring-unimar focus:outline-none ring ring-gray-400 shadow-md rounded-2xl w-full pl-18 pr-3 py-3" placeholder="Buscar" required/>
+                            
+                                <Button className="h-full items-center px-2 pr-4 absolute right-0 rounded-2xl cursor-pointer ">
+                                    <Image
+                                        className="size-4"
+                                        src={'/cerca.png'}
+                                        alt="buscar"
+                                        width={60}
+                                        height={60}
+                                    />
+                                </Button>
+                        </div>
+                    
+                        <div className="relative">
+                            <Input type="date" id="fecha" className="bg-gray-50 focus:ring-[1px] focus:ring-unimar focus:outline-none ring ring-gray-400 shadow-md rounded-2xl w-full pl-3 pr-3 py-3" required/>
+                        </div>
+                    
                 </div>
-            
-                <div className="relative">
-                    <Input type="date" id="fecha" className="bg-gray-50 focus:ring-[1px] focus:ring-unimar focus:outline-none ring ring-gray-400 shadow-md rounded-2xl w-full pl-3 pr-3 py-3" required/>
-                </div>
-            
-        </div>
+                <Table className="w-full">
+                    <TableHead className="text-gray-100  bg-unimar">
+                        <TableHeaderCell  className="first:rounded-l-lg last:rounded-r-lg p-4 justify-center font-semibold ">Deporte</TableHeaderCell>
+                        <TableHeaderCell  className="first:rounded-l-lg last:rounded-r-lg p-4 justify-center font-semibold ">Documento (Reglamento)</TableHeaderCell>
+                        <TableHeaderCell  className="first:rounded-l-lg last:rounded-r-lg p-4 justify-center font-semibold ">Publicado</TableHeaderCell>
+                        <TableHeaderCell  className="first:rounded-l-lg last:rounded-r-lg p-4 justify-center font-semibold ">Creador</TableHeaderCell>
+                        <TableHeaderCell  className="first:rounded-l-lg last:rounded-r-lg p-4 justify-center font-semibold ">Acciones</TableHeaderCell>
+                    </TableHead>
 
-        <Table className="w-full">
-            <TableHead className="text-gray-100  bg-unimar">
-                <TableHeaderCell  className="first:rounded-l-lg last:rounded-r-lg p-4 justify-center font-semibold ">Deporte</TableHeaderCell>
-                <TableHeaderCell  className="first:rounded-l-lg last:rounded-r-lg p-4 justify-center font-semibold ">Documento (Reglamento)</TableHeaderCell>
-                <TableHeaderCell  className="first:rounded-l-lg last:rounded-r-lg p-4 justify-center font-semibold ">Publicado</TableHeaderCell>
-                <TableHeaderCell  className="first:rounded-l-lg last:rounded-r-lg p-4 justify-center font-semibold ">Creador</TableHeaderCell>
-                <TableHeaderCell  className="first:rounded-l-lg last:rounded-r-lg p-4 justify-center font-semibold ">Acciones</TableHeaderCell>
-            </TableHead>
-
-            <TableBody className="bg-white divide-y divide-gray-200">
-                {sportRegs.map((data)=>(
-                    <TableRow key={data.reglamento.id} className="hover:bg-gray-100 text-center cursor-pointer"
-                      onClick={() => {
-                        console.log("Clic en la fila. URL del PDF:", data.reglamento.archivo_url);
-                        setPdfUrl(data.reglamento.archivo_url);
-                    }}
-                    >
-                        <TableCell className="font-bold">{data.deporte.nombre}</TableCell>
-                        <TableCell>{data.reglamento.titulo}</TableCell>
-                        <TableCell>{data.reglamento.publicado}</TableCell>
-                        <TableCell>{data.reglamento.creator ?? 'N/A'}</TableCell>
-                        <TableCell className="space-x-2 flex justify-evenly text-white">
-                        {buttons.map((btn)=>(            
-                            btn.id === 1 ? (
-                                <a 
-                                    key={btn.id}
-                                    href={`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api'}/regulations/${data.reglamento.id}/download`}   
-                                    title={btn.button}
-                                    className={`btn rounded-lg cursor-pointer flex size-12 place-items-center ${btn.id ===1? 'hover:bg-unimar/10' : (btn.id===2? 'hover:bg-gray-300/50': 'hover:bg-rose-300/50' )}`}
-                                    onClick={(e) => e.stopPropagation()}
-                                >
-                                    <Image className='scale-110' src={btn.img} alt={btn.button} width={500} height={500} />
-                                </a>
-                            ) : (
-                                <div key={btn.id} 
-                                    onClick={(e) => {
-                                        e.stopPropagation();
-                                    }}
-                                >
-                                    <Button className={`btn rounded-lg cursor-pointer size-12 ${btn.id ===1? 'hover:bg-unimar/10' : (btn.id===2? 'hover:bg-gray-300/50': 'hover:bg-rose-300/50' )}`}>
-                                        <Image className='scale-110' src={btn.img} alt={btn.button} width={500} height={500} />
-                                    </Button>
-                                </div>
-                            )
+                    <TableBody className="bg-white divide-y divide-gray-200">
+                        {sportRegs.map((data)=>(
+                            <TableRow key={data.reglamento.id} className="hover:bg-gray-100 text-center cursor-pointer"
+                            onClick={() => {
+                                console.log("Clic en la fila. URL del PDF:", data.reglamento.archivo_url);
+                                setPdfUrl(data.reglamento.archivo_url);
+                            }}
+                            >
+                                <TableCell className="font-bold">{data.deporte.nombre}</TableCell>
+                                <TableCell>{data.reglamento.titulo}</TableCell>
+                                <TableCell>{data.reglamento.publicado}</TableCell>
+                                <TableCell>{data.reglamento.creator ?? 'N/A'}</TableCell>
+                                <TableCell className="space-x-2 flex justify-evenly text-white">
+                                {buttons.map((btn)=>(            
+                                    btn.id === 1 ? (
+                                        <a 
+                                            key={btn.id}
+                                            href={`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api'}/regulations/${data.reglamento.id}/download`}   
+                                            title={btn.button}
+                                            className={`btn rounded-lg cursor-pointer flex size-12 place-items-center ${btn.id ===1? 'hover:bg-unimar/10' : (btn.id===2? 'hover:bg-gray-300/50': 'hover:bg-rose-300/50' )}`}
+                                            onClick={(e) => e.stopPropagation()}
+                                        >
+                                            <Image className='scale-110' src={btn.img} alt={btn.button} width={500} height={500} />
+                                        </a>
+                                    ) : (
+                                        <div key={btn.id} 
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                            }}
+                                        >
+                                            <Button className={`btn rounded-lg cursor-pointer size-12 ${btn.id ===1? 'hover:bg-unimar/10' : (btn.id===2? 'hover:bg-gray-300/50': 'hover:bg-rose-300/50' )}`}>
+                                                <Image className='scale-110' src={btn.img} alt={btn.button} width={500} height={500} />
+                                            </Button>
+                                        </div>
+                                    )
+                                ))}
+                                </TableCell>
+                            </TableRow>
                         ))}
-                        </TableCell>
-                    </TableRow>
-                ))}
-            </TableBody>
-        </Table>   
+                    </TableBody>
+                </Table>   
+            </>
+        ):(
+            <div className='justify-items-center text-xl font-semibold text-unimar'>
+                <p className='pb-2'>No se han reglamentos para los deportes</p>
+                <hr className='bg-unimar w-full'/>
+            </div>
+        )}
 
         {pdfUrl && (
                 <Modal_VerReglamento 

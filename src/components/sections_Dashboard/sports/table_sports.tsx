@@ -83,68 +83,76 @@ export default function Table_Sports() {
             </Button>
         </div>
 
-        <div className="Filtro grid grid-rows-2 md:flex items-center mb-6 gap-3 shadow p-3 bg-gray-800/8 rounded-2xl">
-            
-                <div className="relative w-full flex ">
-                    <label htmlFor='buscar' className="h-full place-content-center absolute left-0 px-2 pl-3.5 cursor-pointer rounded-2xl">
-                        <Image
-                            className="size-8"
-                            src={'/lupa.png'}
-                            alt="buscar"
-                            width={60}
-                            height={60}
-                        />
-                    </label>
-                    <Input type="text" id="buscar" className="bg-gray-50 focus:ring-[1px]  focus:ring-unimar focus:outline-none ring ring-gray-400 shadow-md rounded-2xl w-full pl-18 pr-3 py-3" placeholder="Buscar" required/>
+        {sportRegs.length > 0 ?(
+            <>
+                <div className="Filtro grid grid-rows-2 md:flex items-center mb-6 gap-3 shadow p-3 bg-gray-800/8 rounded-2xl">
                     
-                        <Button className="h-full items-center px-2 pr-4 absolute right-0 rounded-2xl cursor-pointer ">
-                            <Image
-                                className="size-4"
-                                src={'/cerca.png'}
-                                alt="buscar"
-                                width={60}
-                                height={60}
-                            />
-                        </Button>
-                </div>
-            
-                <div className="relative">
-                    <Input type="date" id="fecha" className="bg-gray-50 focus:ring-[1px] focus:ring-unimar focus:outline-none ring ring-gray-400 shadow-md rounded-2xl w-full pl-3 pr-3 py-3" required/>
-                </div>
-            
-        </div>
-
-        <Table className="w-full">
-            <TableHead className="text-gray-100  bg-unimar">
-                {titlesport.map((titulos)=>(
-                    <TableHeaderCell key={titulos.id} className="first:rounded-l-lg last:rounded-r-lg p-4 justify-end font-semibold ">
-                        {titulos.titulo}
-                    </TableHeaderCell>
-                ))}
-            </TableHead>
-
-            <TableBody className="bg-white divide-y divide-gray-200">
-                {sportRegs.map((data)=>(
-                    <TableRow key={data.id} className="hover:bg-gray-100 text-center">
-                        <TableCell className="font-bold">{data.nombre}</TableCell>
-                        <TableCell>{data.tipo}</TableCell>
-                        <TableCell>{data.descripcion}</TableCell>
-                        <TableCell className="space-x-2 flex justify-evenly text-white">
-                            {buttons.map((btn)=>(                                
-                                <Button key={btn.id} className={`btn rounded-lg cursor-pointer size-12 ${btn.id ===1? 'hover:bg-unimar/10' : (btn.id===2? 'hover:bg-gray-300/50': 'hover:bg-rose-300/50' )}`}>
+                        <div className="relative w-full flex ">
+                            <label htmlFor='buscar' className="h-full place-content-center absolute left-0 px-2 pl-3.5 cursor-pointer rounded-2xl">
+                                <Image
+                                    className="size-8"
+                                    src={'/lupa.png'}
+                                    alt="buscar"
+                                    width={60}
+                                    height={60}
+                                />
+                            </label>
+                            <Input type="text" id="buscar" className="bg-gray-50 focus:ring-[1px]  focus:ring-unimar focus:outline-none ring ring-gray-400 shadow-md rounded-2xl w-full pl-18 pr-3 py-3" placeholder="Buscar" required/>
+                            
+                                <Button className="h-full items-center px-2 pr-4 absolute right-0 rounded-2xl cursor-pointer ">
                                     <Image
-                                        src={btn.img}
-                                        alt={btn.button}
-                                        width={500}
-                                        height={500}
+                                        className="size-4"
+                                        src={'/cerca.png'}
+                                        alt="buscar"
+                                        width={60}
+                                        height={60}
                                     />
                                 </Button>
-                            ))}
-                        </TableCell>
-                    </TableRow>
-                ))}
-            </TableBody>
-        </Table>    
+                        </div>
+                    
+                        <div className="relative">
+                            <Input type="date" id="fecha" className="bg-gray-50 focus:ring-[1px] focus:ring-unimar focus:outline-none ring ring-gray-400 shadow-md rounded-2xl w-full pl-3 pr-3 py-3" required/>
+                        </div>
+                    
+                </div>
+                <Table className="w-full">
+                    <TableHead className="text-gray-100  bg-unimar">
+                        {titlesport.map((titulos)=>(
+                            <TableHeaderCell key={titulos.id} className="first:rounded-l-lg last:rounded-r-lg p-4 justify-end font-semibold ">
+                                {titulos.titulo}
+                            </TableHeaderCell>
+                        ))}
+                    </TableHead>
+
+                    <TableBody className="bg-white divide-y divide-gray-200">
+                        {sportRegs.map((data)=>(
+                            <TableRow key={data.id} className="hover:bg-gray-100 text-center">
+                                <TableCell className="font-bold">{data.nombre}</TableCell>
+                                <TableCell>{data.tipo}</TableCell>
+                                <TableCell>{data.descripcion}</TableCell>
+                                <TableCell className="space-x-2 flex justify-evenly text-white">
+                                    {buttons.map((btn)=>(                                
+                                        <Button key={btn.id} className={`btn rounded-lg cursor-pointer size-12 ${btn.id ===1? 'hover:bg-unimar/10' : (btn.id===2? 'hover:bg-gray-300/50': 'hover:bg-rose-300/50' )}`}>
+                                            <Image
+                                                src={btn.img}
+                                                alt={btn.button}
+                                                width={500}
+                                                height={500}
+                                            />
+                                        </Button>
+                                    ))}
+                                </TableCell>
+                            </TableRow>
+                        ))}
+                    </TableBody>
+                </Table>                
+            </>
+        ):(
+            <div className='justify-items-center text-xl font-semibold text-unimar'>
+                <p className='pb-2'>No se han creado ofertas academicas</p>
+                <hr className='bg-unimar w-full'/>
+            </div>
+        )}
 
         {isAddModalOpen && (
             <Modal_AddSport

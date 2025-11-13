@@ -22,7 +22,7 @@ export interface ModalProps{
     }, [state]);
 
         return(
-                <div className={`fixed z-40 overflow-hidden inset-0 place-content-center place-items-center transition-all ease-in-out duration-500 
+                <div className={`fixed z-50 overflow-hidden inset-0 place-content-center place-items-center transition-all ease-in-out duration-500 
                  ${state===true ? 'backdrop bg-black/70  md:max-h-screen delay-400': 'delay-100 max-h-0 backdrop-blur-xs backdrop-grayscale-75' }
                   ${className}`} {...props}>
                     {children}

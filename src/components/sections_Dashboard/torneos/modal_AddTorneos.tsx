@@ -7,7 +7,7 @@ import UploadLogo from "@/components/ui/UpLoad_IMG";
 interface ModalProps {
   state: boolean;
   onClose: () => void;
-  onTournamentCreated: () => void;
+  onTournamentCreated?: () => void;
 }
 
 
@@ -97,7 +97,9 @@ export default function modal_addTorneos({ state, onClose, onTournamentCreated }
       }
 
       alert('¡Torneo creado con éxito!');
-      onTournamentCreated();
+      if(onTournamentCreated){
+        onTournamentCreated();
+      }
       handleCloseModal();
 
     } catch (e: any) {

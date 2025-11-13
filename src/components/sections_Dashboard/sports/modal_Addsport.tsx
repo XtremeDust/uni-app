@@ -5,7 +5,7 @@ import UploadLogo from '@/components/ui/UpLoad_IMG';
 export interface Modal{
     state: boolean;
     onClose:()=>void;
-    onSportCreated:() => void;
+    onSportCreated?:() => void;
 }
 const sportTypes = [
   { id: 1, label: "En equipo" },
@@ -91,7 +91,9 @@ export default function modal_Addsport({state,onClose,onSportCreated}:Modal) {
       }
 
       alert('¡Deporte creado con éxito!');
-      onSportCreated();
+      if (onSportCreated){
+        onSportCreated();
+      }
       handleCloseModal();
 
     } catch (e: any) {
