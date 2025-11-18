@@ -3,21 +3,24 @@ import React, { useRef, useState, DragEvent, ChangeEvent } from 'react';
 import Image from 'next/image';
 import { Button, Input } from '@/types/ui_components';
 
-interface UploadLogoProps {
+interface UploadImgProps {
   file: File | null; 
   onFileChange: (file: File | null) => void;
   error?: string | null;
+  previewUrl?: string | null;
   label:string
 }
 
-export default function UploadLogo({ file, onFileChange, error, label }: UploadLogoProps) {
+export default function UploadIMG({ file, onFileChange, error, previewUrl: existingPreviewUrl,label }: UploadImgProps) {
     
   const [isDragging, setIsDragging] = useState(false);
-
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const previewUrl = file ? URL.createObjectURL(file) : null;
+  const newFilePreview = file ? URL.createObjectURL(file) : null;
 
+  const displayUrl = newFilePreview || existingPreviewUrl;
+  const showPreview = !!displayUrl;
+  
   const handleFileChange = (e: ChangeEvent<HTMLInputElement>) => {
     const selected = e.target.files?.[0];
     validateAndSetFile(selected || null);
@@ -78,10 +81,8 @@ export default function UploadLogo({ file, onFileChange, error, label }: UploadL
         className="hidden"
         onChange={handleFileChange}
       />
-
-      {/* 4. Lee desde el prop 'file' (no desde un estado local) */}
-      {!file ? (
-        // --- ZONA DE CARGA ---
+     
+      {!showPreview ? (
         <label
           htmlFor="logoFile"
           onDrop={handleDrop}
@@ -114,7 +115,7 @@ export default function UploadLogo({ file, onFileChange, error, label }: UploadL
         <div className="relative flex flex-col items-center">
           <div className="relative w-48 h-48 rounded-xl overflow-hidden shadow-lg">
             <Image
-              src={previewUrl!} 
+              src={displayUrl!} 
               alt={label}
               fill
               className="object-cover"

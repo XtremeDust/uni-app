@@ -2,6 +2,7 @@
 import React, { useState } from "react";
 import {sectionFs} from "@/types/footerSection";
 import Redes from "@/components/common/footer/socialMedia"
+import Image from "next/image";
 
 function Accordion(){
 
@@ -21,15 +22,22 @@ const StatePanel = (index:number) =>{
                 <div key={index} className="">
                     <div className="border border-transparent border-b-zinc-950 ">
                     <h2 key={section.id} className="font-bold">
-                        <button className="p-4 w-full cursor-pointer grid grid-cols-2 justify-items-start" onClick={() => StatePanel(index)}>
+                        <button className="p-4 w-full cursor-pointer grid grid-cols-2 justify-items-start items-center" onClick={() => StatePanel(index)}>
                             {section.title} 
-                        <span className="grid justify-self-end">{isOpen === index ? '-':'+'}</span>
+                            <Image
+                                className={`grid justify-self-end invert  transition-all ${isOpen === index ? 'rotate-180':'rotate-0'}`}
+                                src={'/flecha-hacia-abajo-para-navegar.png'}
+                                alt="flecha"
+                                width={15}
+                                height={15}
+                            />
+                        <span className="grid justify-self-end"></span>
                         </button>    
                     </h2>
                     </div>
 
                     <ul className={`transition-all  ease-in-out overflow-hidden 
-                        ${isOpen === index ? 'delay-400 max-h-screen opacity-100 ' : 'delay-100 max-h-0 opacity-0 '}`}>                      
+                        ${isOpen === index ? 'delay-100  max-h-screen opacity-100 ' : 'max-h-0 opacity-0 '}`}>                      
                                 {section.subsection?.map((sub)=>(
                                     <li key={sub.id} className="p-2">
                                     <a key={sub.id} href={sub.url} className="ml-5">

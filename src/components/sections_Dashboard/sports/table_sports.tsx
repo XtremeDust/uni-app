@@ -10,12 +10,23 @@ import {
   TableHead, TableHeaderCell
  } from '@/types/ui_components';
 import Modal_AddSport from './modal_Addsport'
+import Delete_Modal from '@/components/ui/ConfirmDeleteModal';
+import Modal_DetallesDeporte, { ApiSportDetail } from './modal_DetalleSport';
 
 export interface ApiSports {
   id: number;
   nombre: string;
   tipo: string;
   descripcion: string;
+  img:string;
+  equipamiento:string;
+}
+
+export interface ApiSportList {
+  id: number;
+  nombre: string;
+  tipo: string;
+  descripcion: string | null;
 }
 
 const buttons = [
@@ -26,7 +37,7 @@ const buttons = [
 
 const titlesport = [
     {id:1,titulo:'Deporte'},
-    {id:2,titulo:'Modo de Juego'},
+    {id:2,titulo:'Modo'},
     {id:3,titulo:'Descripción'},
     {id:5,titulo:'Acciones'},
 ]
@@ -35,31 +46,131 @@ const titlesport = [
 export default function Table_Sports() {
 
       const [loading, setLoading] = useState(true);
-      const [isSaving, setIsSaving] = useState(false);
       const [error, setError] = useState<string | null>(null);
-      const [sportRegs, setSportRegs] = useState<ApiSports[]>([]);
+
+      const [sportRegs, setSportRegs] = useState<ApiSportList[]>([]);
 
       const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+      const [editingSport, setEditingSport] = useState<ApiSports | null>(null);
+
+      const [isDeleting, setIsDeleting] = useState(false);
+      const [sportToDelete, setSportToDelete] = useState<ApiSportList | null>(null);
+
+      //
+      const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
+      const [loadingModal, setLoadingModal] = useState(false);
+      const [selectedSportDetail, setSelectedSportDetail] = useState<ApiSportDetail | null>(null);
+
+      const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api';
 
        const fetchSport = async () => {
               setLoading(true);
               setError(null);
-              const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api';
+              
               try {
-              const res = await fetch(`${API_URL}/sports`);
-              if (!res.ok) throw new Error(`Error HTTP: ${res.statusText}`);
-              const jsonData = await res.json();
-              setSportRegs(jsonData.data);
+                const res = await fetch(`${API_URL}/sports`);
+                if (!res.ok) throw new Error(`Error HTTP: ${res.statusText}`);
+                const jsonData = await res.json();
+                setSportRegs(jsonData.data);
               } catch (e: any) {
-              setError(e.message || "Error al cargar los deportes");
+                setError(e.message || "Error al cargar los deportes");
               } finally {
-              setLoading(false);
+                setLoading(false);
               }
           };
       
           useEffect(() => {
               fetchSport();
           }, []);
+
+
+  const handleDeleteClick = (sport: ApiSportList) => {
+        console.log("Abriendo modal para eliminar:", sport);
+        setSportToDelete(sport); 
+    };
+
+    const handleDeleteSport = async () => {
+  if (!sportToDelete) return; 
+  
+  setIsDeleting(true);
+  try {
+    const res = await fetch(`${API_URL}/sports/${sportToDelete.id}`, {
+      method: 'DELETE',
+      headers: { 'Accept': 'application/json' }
+    });
+
+    // --- MEJORA DE MANEJO DE ERRORES ---
+    if (!res.ok) {
+      // Intenta leer el mensaje de error real de tu API de Laravel
+      const errorData = await res.json(); 
+      // Lanza ese mensaje de error, que será más específico
+      throw new Error(errorData.message || `Error ${res.status}: No se pudo eliminar`);
+    }
+    
+    // --- MEJORA DE ÉXITO ---
+    // Si res.ok es true, todo salió bien
+    
+    setSportToDelete(null); // Cierra el modal
+    fetchSport(); // Refresca la tabla
+    
+    // ¡Aquí está el alert de éxito que faltaba!
+    alert('¡Deporte eliminado con éxito!'); 
+
+  } catch (e: any) {
+    // Este alert ahora mostrará el error real de la API
+    // (ej: "No se puede eliminar, el deporte está en uso")
+    console.error("Error al eliminar:", e);
+    alert(e.message); 
+  } finally {
+    setIsDeleting(false);
+  }
+};
+
+    const handleDetailsClick = async (sport: ApiSportList) => {
+    setIsDetailModalOpen(true); 
+    setLoadingModal(true);      
+    setSelectedSportDetail(null); 
+
+    try {
+        const res = await fetch(`${API_URL}/sports/${sport.id}`);
+        if (!res.ok) throw new Error(`Error en API de Deporte: ${res.statusText}`);
+        const jsonData = await res.json();
+        setSelectedSportDetail(jsonData.data);
+    } catch (e: any) {
+        console.error("Error al cargar detalles del deporte:", e);
+    } finally {
+      setLoadingModal(false);
+    }
+  };
+
+  const handleEditClick = async (sport: ApiSportList) => {
+    console.log("Editando:", sport);
+    try {
+        const res = await fetch(`${API_URL}/sports/${sport.id}`);
+        if (!res.ok) throw new Error('No se pudo cargar la info para editar');
+        const jsonData = await res.json();
+        setEditingSport(jsonData.data);
+    } catch(e) {
+        alert('Error al cargar datos de edición');
+    }
+  }
+  
+        const handleActionClick = (btnId: number, sport: ApiSports) => {
+            if (btnId === 2) { 
+                setEditingSport(sport);
+            }
+            if (btnId === 3) { 
+                setSportToDelete(sport);
+            }
+        }
+
+        const handleCloseEdit = () => {
+            setEditingSport(null);
+        };
+
+        const handleRefresh = () => {
+            fetchSport();
+        };
 
     if (loading) return <p className="text-center p-4">Cargando reglas de actividad...</p>;
     if (error) return <p className="text-center p-4 text-red-600">Error: {error}</p>;
@@ -126,20 +237,35 @@ export default function Table_Sports() {
 
                     <TableBody className="bg-white divide-y divide-gray-200">
                         {sportRegs.map((data)=>(
-                            <TableRow key={data.id} className="hover:bg-gray-100 text-center">
+                            <TableRow key={data.id} className="hover:bg-gray-100 text-center cursor-pointer"
+                                onClick={()=>handleDetailsClick(data)}
+                            >
                                 <TableCell className="font-bold">{data.nombre}</TableCell>
                                 <TableCell>{data.tipo}</TableCell>
                                 <TableCell>{data.descripcion}</TableCell>
                                 <TableCell className="space-x-2 flex justify-evenly text-white">
-                                    {buttons.map((btn)=>(                                
-                                        <Button key={btn.id} className={`btn rounded-lg cursor-pointer size-12 ${btn.id ===1? 'hover:bg-unimar/10' : (btn.id===2? 'hover:bg-gray-300/50': 'hover:bg-rose-300/50' )}`}>
+                                    {buttons.map((btn) => (
+                                        <div 
+                                            key={btn.id}
+                                            onClick={(e) => {
+                                            e.stopPropagation();
+                                            if (btn.id === 2) handleEditClick(data);
+                                            if (btn.id === 3) handleDeleteClick(data);
+                                            }}
+                                        >
+                                            <Button 
+                                            className={`btn rounded-lg cursor-pointer size-12 ${
+                                                btn.id === 2 ? 'hover:bg-gray-300/50' : 'hover:bg-rose-300/50'
+                                            }`}
+                                            >
                                             <Image
                                                 src={btn.img}
                                                 alt={btn.button}
                                                 width={500}
                                                 height={500}
                                             />
-                                        </Button>
+                                            </Button>
+                                        </div>
                                     ))}
                                 </TableCell>
                             </TableRow>
@@ -161,6 +287,38 @@ export default function Table_Sports() {
                 onSportCreated={() => {
                     fetchSport(); // Refresca la tabla al guardar
                 }}
+            />
+
+        )}
+      
+        {editingSport && (
+            <Modal_AddSport
+                state={!!editingSport} // El modal está abierto si 'editingSport' no es null
+                onClose={handleCloseEdit}
+                onSportCreated={handleRefresh}
+                sportToEdit={editingSport} // <-- ¡Le pasamos el deporte a editar!
+            />
+        )}
+
+        {sportToDelete && (
+            <Delete_Modal
+                isOpen={!!sportToDelete}
+                title="Confirmar Eliminación"
+                message={`¿Estás seguro de que quieres eliminar el deporte "${sportToDelete.nombre}"? Esta acción no se puede deshacer.`}
+                onClose={() => {
+                    if (!isDeleting) setSportToDelete(null);
+                }}
+                onConfirm={handleDeleteSport}
+                isLoading={isDeleting} 
+            />
+        )}
+
+        {isDetailModalOpen && (
+            <Modal_DetallesDeporte
+            state={isDetailModalOpen}
+            onClose={() => setIsDetailModalOpen(false)}
+            isLoading={loadingModal}
+            sportData={selectedSportDetail}
             />
         )}
 

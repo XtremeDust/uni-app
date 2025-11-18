@@ -765,6 +765,7 @@ const [isSept, setStep] = useState(1);
 
                                     <div className="flex flex-col p-3 bg-gray-100 shadow rounded-xl">
                                         <UploadLogo
+                                            label="Logo del equipo"
                                             file={teamData.logo}
                                             onFileChange={(file: File | null) => {
                                                 setTeamData(prev => ({ ...prev, logo: file }));

@@ -13,7 +13,7 @@ export default function page() {
               <section className="grid grid-cols-1  space-y-3 lg:space-y-0 lg:gap-6 mb-4">
                   <Table_Ractivity/>
                   <Table_Rtorneo/>
-                  <Tabla_Rdisciplina/>
+                  {/*<Tabla_Rdisciplina/>*/}
                   <Tabla_Rsport/>
               </section>
 

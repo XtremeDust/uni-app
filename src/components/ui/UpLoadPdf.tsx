@@ -8,20 +8,39 @@ interface PdfUploaderProps {
   onFileChange: (file: File | null) => void; 
   error?: string | null; 
   label?: string;
+  existingFileUrl?: string | null; // <-- Prop para el modo Edición
 }
 
 export default function PdfUploader({ 
   file, 
   onFileChange, 
   error, 
-  label = "Archivo PDF (requerido)" 
+  label = "Archivo PDF (requerido)",
+  existingFileUrl // <-- La recibimos aquí
 }: PdfUploaderProps) {
   
   const [isDragging, setIsDragging] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const previewUrl = file ? URL.createObjectURL(file) : null;
+  // --- LÓGICA DE VISTA PREVIA MEJORADA ---
 
+  // 1. URL para un archivo NUEVO (local)
+  const newFilePreviewUrl = file ? URL.createObjectURL(file) : null;
+  
+  // 2. URL para un archivo EXISTENTE (del servidor)
+  // Construye la URL absoluta (como en tu Modal_VerReglamento)
+  const fullExistingUrl = existingFileUrl 
+    ? `${process.env.NEXT_PUBLIC_API_PDF || 'http://localhost:8000'}${existingFileUrl}` 
+    : null;
+
+  // 3. Decide qué URL mostrar
+  const displayUrl = newFilePreviewUrl || fullExistingUrl;
+  
+  // 4. Decide qué nombre de archivo mostrar
+  const fileName = file ? file.name : (existingFileUrl ? existingFileUrl.split('/').pop() : 'Archivo existente');
+  const fileSize = file ? file.size : null;
+
+  // --- MANEJADORES ---
   const handleFileChange = (e: ChangeEvent<HTMLInputElement>) => {
     const selectedFile = e.target.files?.[0];
     validateAndSetFile(selectedFile || null);
@@ -76,7 +95,7 @@ export default function PdfUploader({
     e.stopPropagation();
     onFileChange(null);
   };
-
+  
   return (
     <div className="flex flex-col">
       <InputGroup label={label} For="pdfFile" labelClass="text-gray-500 text-start">
@@ -89,39 +108,65 @@ export default function PdfUploader({
           onChange={handleFileChange}
         />
         
-        {file && previewUrl ? (
-
-          <div className="relative space-y-1 flex flex-col items-center justify-between w-full h-auto p-4 rounded-lg border-2 border-green-500 bg-green-50">
+        {/* --- ESTADO 1 y 2: Mostrar Vista Previa (Nueva o Existente) --- */}
+        {displayUrl ? (
+          <div className={`
+            relative space-y-1 flex flex-col items-center justify-between w-full h-auto p-4 rounded-lg border-2 
+            ${file ? 'border-green-500 bg-green-50' : 'border-blue-500 bg-blue-50'}
+          `}>
             <div className="flex w-full justify-between items-center px-2">
-                <div className='text-left overflow-hidden flex gap-5 items-center'>
-                    <p className='font-bold text-gray-800 truncate'>{file.name}</p>
-                    <p className='text-sm text-gray-600'>
-                        {(file.size / 1024 / 1024) === 0.00 ? ((file.size / 1024 / 1024).toFixed(2)+' MB'): ((file.size / 1024).toFixed(2)+' KB')}
-                    </p>
-                </div>
+              <div className='text-left overflow-hidden flex flex-wrap items-center gap-x-5 gap-y-1'>
+                <p className='font-bold text-gray-800 truncate'>{fileName}</p>
+                {/* Muestra el tamaño solo si es un archivo NUEVO */}
+                {fileSize && (
+                  <p className='text-sm text-gray-600'>
+                    {(fileSize / (1024 * 1024)) > 1 ? 
+                      (fileSize / (1024 * 1024)).toFixed(2) + ' MB' :
+                      (fileSize / 1024).toFixed(2) + ' KB'
+                    }
+                  </p>
+                )}
+                {/* Muestra un enlace si es un archivo EXISTENTE */}
+                {!file && fullExistingUrl && (
+                  <a href={fullExistingUrl} target="_blank" rel="noopener noreferrer" className="text-sm text-blue-700 hover:underline">
+                    (Ver archivo actual)
+                  </a>
+                )}
+              </div>
+              
+              {/* El botón 'X' solo aparece si es un archivo NUEVO */}
+              {file ? (
                 <button
-                    type="button"
-                    onClick={handleRemoveFile}
-                    className="bg-red-100 text-red-700 rounded-full px-2.5 py-1 hover:bg-red-200 transition-colors flex-shrink-0"
-                    aria-label="Eliminar archivo"
+                  type="button"
+                  onClick={handleRemoveFile}
+                  className="bg-red-100 text-red-700 rounded-full px-2.5 py-1 hover:bg-red-200 transition-colors flex-shrink-0"
+                  aria-label="Eliminar archivo"
                 >
-                    &#10005; 
+                  &#10005; 
                 </button>
+              ) : (
+                // En modo edición, mostramos un botón para "Reemplazar"
+                <label htmlFor="pdfFile" className="text-sm text-unimar font-bold cursor-pointer hover:underline flex-shrink-0">
+                  Reemplazar
+                </label>
+              )}
             </div>
 
+            {/* Vista previa del Iframe */}
             <div className="w-full h-80 border border-gray-300 rounded-md overflow-hidden">
-                <iframe
-                    src={previewUrl} // Usa la URL temporal
-                    className="w-full h-72 md:h-90 border-0 rounded" // Altura ajustable
-                    title="Vista previa del PDF"
-                >
-                    <p>Tu navegador no soporta la previsualización de PDF.</p>
-                    <a href={previewUrl} download={file.name}>Descargar PDF para ver</a>
-                </iframe>
+              <iframe
+                src={displayUrl} // <-- Usa la URL decidida (nueva o existente)
+                className="w-full h-full border-0"
+                title="Vista previa del PDF"
+              >
+                <p>Tu navegador no soporta la previsualización de PDF.</p>
+              </iframe>
             </div>
-
           </div>
+
         ) : (
+          
+          /* --- ESTADO 3: Dropzone (No hay archivo nuevo NI existente) --- */
           <label
             htmlFor="pdfFile"
             onDragOver={handleDragOver}

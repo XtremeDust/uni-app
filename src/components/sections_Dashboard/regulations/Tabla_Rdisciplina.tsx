@@ -1,12 +1,44 @@
 'use client';
 import React, { useEffect, useState } from 'react';
 import Image from 'next/image';
-import { Input, Button, Select, Table, TableBody, TableCell, TableRow, TableHead, TableHeaderCell } from '@/types/ui_components';
+import { 
+  Input, 
+  Button, 
+  Select, 
+  Table, 
+  TableBody, 
+  TableCell, 
+  TableRow, 
+  TableHead, 
+  TableHeaderCell 
+} from '@/types/ui_components';
 import ModalAsignarRegla from './Modal_addRegulation';
- import Modal_VerReglamento from './Modal_reglamento';
+import Modal_VerReglamento from './Modal_reglamento';
+import ConfirmDeleteModal from '@/components/ui/ConfirmDeleteModal'; // <-- Agregado
+
+// Interfaces para tipado (opcional pero recomendado para evitar errores)
+export interface ApiRegulation {
+  id: number;
+  titulo: string;
+  archivo_url: string;
+  alcance: string;
+  publicado: string;
+  creator: string;
+  creado_por?: { name: string };
+}
+
+export interface ApiDisciplineRegulation {
+  id_asignacion: number; // Usado como key en tu código original
+  discipline: {          // En tu código original usas 'discipline'
+    id: number;
+    nombre_deporte: string;
+    categoria: string;
+  };
+  reglamento: ApiRegulation;
+}
 
 const titlesreglas = [
-    {id:1,titulo:'Actividad'},
+    {id:1,titulo:'Disciplina'}, // Cambiado título a Disciplina
     {id:2,titulo:'Documento (Reglamento)'},
     {id:3,titulo:'Publicado'},
     {id:4,titulo:'Creador'},
@@ -20,14 +52,21 @@ const buttons = [
 ]
 
 export default function Tabla_Rdisciplina() {
-  const [disciplineRegs, setDisciplineRegs] = useState<any[]>([]); // Usa tu interfaz
+  // Usamos la interfaz o any si prefieres, pero la interfaz ayuda con el autocompletado
+  const [disciplineRegs, setDisciplineRegs] = useState<ApiDisciplineRegulation[]>([]); 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   
+  // Estados originales
   const [isModalOpen, setIsModalOpen] = useState(false);
-    const [pdfUrl, setPdfUrl] = useState<string | null>(null);
+  const [pdfUrl, setPdfUrl] = useState<string | null>(null);
 
-    const fetchDisciplineRegs = async () => {
+  // --- NUEVOS ESTADOS PARA EDITAR Y ELIMINAR ---
+  const [editingReg, setEditingReg] = useState<ApiDisciplineRegulation | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [regToDelete, setRegToDelete] = useState<ApiDisciplineRegulation | null>(null);
+
+  const fetchDisciplineRegs = async () => {
     setLoading(true);
     setError(null);
     const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api';
@@ -46,6 +85,47 @@ export default function Tabla_Rdisciplina() {
   useEffect(() => {
     fetchDisciplineRegs();
   }, []);
+
+  // --- NUEVAS FUNCIONES ---
+
+  const handleEditClick = (reg: ApiDisciplineRegulation) => {
+    console.log("Abriendo modal para editar:", reg);
+    setEditingReg(reg);
+  };
+
+  const handleDeleteClick = (reg: ApiDisciplineRegulation) => {
+    console.log("Abriendo modal para eliminar:", reg);
+    setRegToDelete(reg);
+  };
+
+  const handleConfirmDelete = async () => {
+    if (!regToDelete) return;
+    setIsDeleting(true);
+    const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api';
+
+    try {
+      const res = await fetch(`${API_URL}/regulations/${regToDelete.reglamento.id}`, {
+        method: 'DELETE',
+        headers: { 'Accept': 'application/json' }
+      });
+
+      if (!res.ok) {
+        const errData = await res.json();
+        throw new Error(errData.message || 'Error al eliminar');
+      }
+
+      alert('¡Reglamento eliminado con éxito!');
+      setRegToDelete(null);
+      fetchDisciplineRegs(); // Recargar tabla
+
+    } catch (e: any) {
+      console.error("Error al eliminar:", e);
+      alert(e.message);
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
 
   if (loading) return <p className="text-center p-4">Cargando reglas de disciplina...</p>;
   if (error) return <p className="text-center p-4 text-red-600">Error: {error}</p>;
@@ -67,7 +147,6 @@ export default function Tabla_Rdisciplina() {
                 <h3 className="font-semibold">Añadir Regla</h3>
           </Button>
       </div>
-
 
       {disciplineRegs.length > 0 ?(
         <>
@@ -134,6 +213,9 @@ export default function Tabla_Rdisciplina() {
                             <div key={btn.id} 
                                 onClick={(e) => {
                                     e.stopPropagation();
+                                    // --- AQUI AGREGAMOS LA LOGICA ---
+                                    if (btn.id === 2) handleEditClick(data);
+                                    if (btn.id === 3) handleDeleteClick(data);
                                 }}
                             >
                                 <Button className={`btn rounded-lg cursor-pointer size-12 ${btn.id ===1? 'hover:bg-unimar/10' : (btn.id===2? 'hover:bg-gray-300/50': 'hover:bg-rose-300/50' )}`}>
@@ -146,11 +228,11 @@ export default function Tabla_Rdisciplina() {
                 </TableRow>
               ))}
             </TableBody>
-          </Table>
+          </Table> 
         </>
       ):(   
           <div className='justify-items-center text-xl font-semibold text-unimar'>
-                <p className='pb-2'>No se han reglamentos para las disciplinas</p>
+                <p className='pb-2'>No se han creado reglamentos para las disciplinas</p>
                 <hr className='bg-unimar w-full'/>
           </div>
         )}
@@ -163,12 +245,29 @@ export default function Tabla_Rdisciplina() {
               />
       )}
 
-      {isModalOpen && (
+      {/* --- MODIFICADO PARA SOPORTAR EDICIÓN --- */}
+      {(isModalOpen || editingReg) && (
         <ModalAsignarRegla
-          state={isModalOpen}
-          onClose={() => setIsModalOpen(false)}
+          state={isModalOpen || !!editingReg}
+          onClose={() => {
+            setIsModalOpen(false);
+            setEditingReg(null);
+          }}
           assignType="discipline" 
           onSaveSuccess={fetchDisciplineRegs}
+          regulationToEdit={editingReg} // Pasamos el dato a editar
+        />
+      )}
+
+      {/* --- MODAL DE ELIMINAR AGREGADO --- */}
+      {regToDelete && (
+        <ConfirmDeleteModal
+          isOpen={!!regToDelete}
+          title="Confirmar Eliminación"
+          message={`¿Estás seguro de que quieres eliminar el reglamento "${regToDelete.reglamento.titulo}"?`}
+          onClose={() => setRegToDelete(null)}
+          onConfirm={handleConfirmDelete}
+          isLoading={isDeleting}
         />
       )}
     </div>

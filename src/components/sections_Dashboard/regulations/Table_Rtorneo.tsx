@@ -11,6 +11,7 @@ import {
  } from '@/types/ui_components'
 import ModalAsignarRegla from './Modal_addRegulation';
 import Modal_VerReglamento from './Modal_reglamento';
+import ConfirmDeleteModal from '@/components/ui/ConfirmDeleteModal';
 
 export interface ApiRegulation {
   id: number;
@@ -51,6 +52,10 @@ export default function Table_Rtorneo() {
 
     const [isModalOpen, setIsModalOpen] = useState(false);
      const [pdfUrl, setPdfUrl] = useState<string | null>(null);
+     ///
+     const [isDeleting, setIsDeleting] = useState(false);
+     const [regToDelete, setRegToDelete] = useState<ApiTournamentRegulation | null>(null);
+     const [editingReg, setEditingReg] = useState<ApiTournamentRegulation | null>(null);
 
     const fetchTournamentRegs = async () => {
         setLoading(true);
@@ -71,6 +76,42 @@ export default function Table_Rtorneo() {
     useEffect(() => {
         fetchTournamentRegs();
     }, []);
+
+const handleDeleteClick = (regulation: ApiTournamentRegulation) => {
+  console.log("Abriendo modal para eliminar:", regulation);
+  setRegToDelete(regulation);
+};
+
+
+const handleConfirmDelete = async () => {
+  if (!regToDelete) return;
+  setIsDeleting(true);
+  const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api';
+  try {
+    const res = await fetch(`${API_URL}/regulations/${regToDelete.reglamento.id}`, {
+      method: 'DELETE',
+      headers: { 'Accept': 'application/json' }
+    });
+    if (!res.ok) {
+      const errData = await res.json();
+      throw new Error(errData.message || 'Error al eliminar');
+    }
+    alert('¡Reglamento eliminado con éxito!');
+    setRegToDelete(null); 
+    fetchTournamentRegs(); 
+
+  } catch (e: any) {
+    console.error("Error al eliminar:", e);
+    alert(e.message);
+  } finally {
+    setIsDeleting(false);
+  }
+};
+
+const handleEditClick = (regulation: ApiTournamentRegulation) => {
+  console.log("Abriendo modal para editar:", regulation);
+  setEditingReg(regulation);
+};
 
     if (loading) return <p className="text-center p-4">Cargando reglas de torneo...</p>;
     if (error) return <p className="text-center p-4 text-red-600">Error: {error}</p>;
@@ -160,7 +201,9 @@ export default function Table_Rtorneo() {
                                             ) : (
                                                 <div key={btn.id} 
                                                     onClick={(e) => {
-                                                        e.stopPropagation();
+                                                    e.stopPropagation();
+                                                        if (btn.id === 2) handleEditClick(data); 
+                                                        if (btn.id === 3) handleDeleteClick(data);
                                                     }}
                                                 >
                                                     <Button className={`btn rounded-lg cursor-pointer size-12 ${btn.id ===1? 'hover:bg-unimar/10' : (btn.id===2? 'hover:bg-gray-300/50': 'hover:bg-rose-300/50' )}`}>
@@ -190,14 +233,32 @@ export default function Table_Rtorneo() {
                     />
             )}
 
-            {isModalOpen && (
+            {(isModalOpen || editingReg) && (
                 <ModalAsignarRegla
-                state={isModalOpen}
-                onClose={() => setIsModalOpen(false)}
-                assignType="tournament"
-                onSaveSuccess={fetchTournamentRegs}
+                    state={isModalOpen || !!editingReg}
+                    onClose={() => {
+                    setIsModalOpen(false);
+                    setEditingReg(null);
+                    }}
+                    
+                    assignType="tournament"
+
+                    onSaveSuccess={fetchTournamentRegs}
+                    regulationToEdit={editingReg} 
                 />
             )}
+
+            {regToDelete && (
+            <ConfirmDeleteModal
+                isOpen={!!regToDelete}
+                title="Confirmar Eliminación"
+                message={`¿Estás seguro de que quieres eliminar el reglamento "${regToDelete.reglamento.titulo}"?`}
+                onClose={() => setRegToDelete(null)}
+                onConfirm={handleConfirmDelete}
+                isLoading={isDeleting}
+            />
+            )}
+             
         </div>
   )
 }

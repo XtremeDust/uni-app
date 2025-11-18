@@ -432,11 +432,10 @@ export default function table_teams_inscritos() {
 
       {/* --- El Modal inscripbir --- */}
     {isTeamModalOpen && (       
-        <Modal state={isTeamModalOpen}>
-            <TeamModal 
-                onCloseExternal={() => setIsTeamModalOpen(false)}
-            />
-        </Modal>         
+        <TeamModal 
+            state={isTeamModalOpen}
+            onCloseExternal={() => setIsTeamModalOpen(false)}
+        />       
     )}
     </section>
   )

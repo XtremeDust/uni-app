@@ -86,7 +86,6 @@ import Arrow from "../ArrowIcon";
                                     )}
                                 </a>
     
-
                                 {(Subsublist.img==="#" && isOpenSubs===e)&&(
                                     <div className=" absolute left-full top-0 ml-0.5 w-max overflow-visible rounded-md bg-white">
                                     {Subsublist.subsectionH?.map((endlist)=>(

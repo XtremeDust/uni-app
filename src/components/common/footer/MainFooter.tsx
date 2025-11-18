@@ -17,7 +17,7 @@ function Footer(){
             <img src="https://res.cloudinary.com/dnfvfft3w/image/upload/v1753572417/samples/animals/kitten-playing.gif" alt="logo" className="w-44"/>
             
             */}
-            <img src="https://res.cloudinary.com/dnfvfft3w/image/upload/v1753574382/logo-unimar-22_fmrgjq.png" alt="logo" className="w-44"/>
+            <img src="/logo-unimar-22.png" alt="logo" className="w-44"/>
             <p className="text-[12px] w-55 md:ml-2 xl:ml-0 xl:w-70 lg:p-2 text-white ">Av. Concepción Mariño, Sector El Toporo, El Valle del Espíritu Santo, Edo. Nueva Esparta, Venezuela.</p>
         </div>
 

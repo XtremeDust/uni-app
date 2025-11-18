@@ -1,12 +1,13 @@
 'use client';
 import { useEffect, useRef, useState, ChangeEvent, useMemo } from "react"; 
-import { Button, ContainModal, HeaderModal, FooterModal, Input, InputGroup } from "@/types/ui_components";
+import { Button, ContainModal, HeaderModal, FooterModal, Input, InputGroup, Modal } from "@/types/ui_components";
 import { motion, AnimatePresence } from "motion/react";
 import Image from "next/image";
 import UploadLogo from "@/components/ui/UpLoad_IMG";
 
 interface ModalProps {
     onCloseExternal: () => void;
+    state:boolean;
 }
 
 interface ApiDiscipline {
@@ -31,7 +32,7 @@ interface ApiTournament {
     reglamentos_torneo: any[];
 }
 
-export default function team_modal({onCloseExternal}:ModalProps) {
+export default function team_modal({onCloseExternal, state}:ModalProps) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [tournament, setTournament] = useState<ApiTournament | null>(null);
@@ -370,339 +371,346 @@ export default function team_modal({onCloseExternal}:ModalProps) {
 
     if (loading) {
         return (
-        <ContainModal className="w-full max-w-md p-6 flex items-center justify-center">
-            <p>Cargando información del torneo...</p>
-        </ContainModal>
+          <Modal state={state}>
+            <ContainModal className="w-full max-w-md p-6 flex items-center justify-center">
+                <p>Cargando información del torneo...</p>
+            </ContainModal>
+          </Modal>
         );
     }
   
     if (error) {
         return (
-        <ContainModal className="w-full max-w-md p-6 bg-white rounded-2xl">
-            <HeaderModal onClose={handleCloseModal} >
-            <h3 className="text-xl font-bold text-red-600">Error</h3>
-            </HeaderModal>
-            <div className="p-4 text-center">
-            <p className="text-gray-700 mt-2">{error}</p>
-            <Button onClick={handleCloseModal} className="mt-4 bg-unimar input px-4 py-1.5 cursor-pointer text-white">Cerrar</Button>
-            </div>
-        </ContainModal>
+          <Modal state={state}>
+            <ContainModal className="w-full max-w-md p-6 bg-white rounded-2xl">
+                <HeaderModal onClose={handleCloseModal} >
+                <h3 className="text-xl font-bold text-red-600">Error</h3>
+                </HeaderModal>
+                <div className="p-4 text-center">
+                <p className="text-gray-700 mt-2">{error}</p>
+                <Button onClick={handleCloseModal} className="mt-4 bg-unimar input px-4 py-1.5 cursor-pointer text-white">Cerrar</Button>
+                </div>
+            </ContainModal>
+          </Modal>
+
         );
     }
 
  return (
-        <ContainModal className={`grid grid-rows-[auto_minmax(0,1fr)_auto] text-black w-[95%] md:w-[70%] lg:w-[60%] xl:w-[50%] 2xl:w-[40%] space-y-3 bg-gray-200 rounded-2xl overflow-hidden max-h-[80vh]`}>
-            
-            <HeaderModal className="flex-none" onClose={handleCloseModal}>
-              <div className="text-start">
-                  <h2 className="ml-5 title">Añadir Nueva Inscripción</h2>
-                  <p className="ml-5 text-[1.2rem]">Seleccione la disciplina y complete los datos del equipo.</p>
-              </div>
-            </HeaderModal>
+  <Modal state={state}>
+      <ContainModal className={`grid grid-rows-[auto_minmax(0,1fr)_auto] text-black w-[95%] md:w-[70%] lg:w-[60%] xl:w-[50%] 2xl:w-[40%] space-y-3 bg-gray-200 rounded-2xl overflow-hidden max-h-[80vh]`}>
+          
+          <HeaderModal className="flex-none" onClose={handleCloseModal}>
+            <div className="text-start">
+                <h2 className="ml-5 title">Añadir Nueva Inscripción</h2>
+                <p className="ml-5 text-[1.2rem]">Seleccione la disciplina y complete los datos del equipo.</p>
+            </div>
+          </HeaderModal>
 
-            <div className="relative flex-grow main-modal overflow-y-auto px-4 space-y-2">
-                <section className="flex flex-col p-4 shadow rounded-xl bg-gray-100">
-                  <div className="section-title mt-2 flex flex-row gap-2 ml-3 place-items-center">
-                      <div className="relative size-[52px] bg-unimar/8 rounded-full">
-                          <Image
-                              className=" absolute inset-0 object-contain scale-100"
-                              src={'/informe.png'}
-                              alt="Info"
-                              fill
-                          />
-                      </div>
-                      <div className="text-start">
-                          <h3 className="text-[1.3rem] font-bold">1. Seleccione la Disciplina</h3>
-                      </div>
-                  </div>
-                  <div className="flex flex-col lg:grid lg:grid-cols-2 gap-4 text-start p-3">
-                  
-                  <InputGroup For="deporte" label="Deporte" labelClass="text-gray-700">
-                      <div className="relative" ref={menuOut} onClick={() => (setMDep(!OpenDep))}>
-                        <Input 
-                            type='text' 
-                            id="deporte" 
-                            className="cursor-pointer input w-full pl-3 py-3 placeholder:text-black" 
-                            required readOnly 
-                            value={selectedSportName ?? "Seleccione un deporte"}
+          <div className="relative flex-grow main-modal overflow-y-auto px-4 space-y-2">
+              <section className="flex flex-col p-4 shadow rounded-xl bg-gray-100">
+                <div className="section-title mt-2 flex flex-row gap-2 ml-3 place-items-center">
+                    <div className="relative size-[52px] bg-unimar/8 rounded-full">
+                        <Image
+                            className=" absolute inset-0 object-contain scale-100"
+                            src={'/informe.png'}
+                            alt="Info"
+                            fill
                         />
-                        <Button type="button" className=" cursor-pointer absolute right-1 md:right-1 lg:right-4 top-1/2 flex justify-center -translate-y-1/2 -translate-x-1/2">
-                            <Image className={`size-[1rem] transition-transform duration-300 ease-in-out ${OpenDep ? 'rotate-180' : ' rotate-360'}`} src={'https://res.cloudinary.com/dnfvfft3w/image/upload/v1759101273/flecha-hacia-abajo-para-navegar_zixe1b.png'} alt="desplegar" width={100} height={100} />
-                        </Button>
-                        <div className={`absolute z-20 bg-white shadow-lg mt-1 rounded-xl overflow-hidden overflow-y-auto ${OpenDep ? 'w-full h-[6.75rem]' : 'max-h-0 opacity-0 pointer-events-none'}`}>
-                            {uniqueSports.map((sportName) => (
-                            <div 
-                                key={sportName} 
-                                className="w-full flex gap-2 p-1.5 hover:bg-unimar/15 place-items-center" 
-                                onClick={() => (handleSelectD(sportName))}
-                            >
-                                <span className="ml-2">{sportName}</span>
-                            </div>
-                            ))}
-                        </div>
-                      </div>
-                  </InputGroup> 
-
-                  <InputGroup For="Categoria" label="Categoría" labelClass="text-gray-700">
-                      <div 
-                      className="relative" 
-                      ref={menuOutC} 
-                      onClick={() => selectedSportName && setMCat(!OpenCat)}
-                      >
+                    </div>
+                    <div className="text-start">
+                        <h3 className="text-[1.3rem] font-bold">1. Seleccione la Disciplina</h3>
+                    </div>
+                </div>
+                <div className="flex flex-col lg:grid lg:grid-cols-2 gap-4 text-start p-3">
+                
+                <InputGroup For="deporte" label="Deporte" labelClass="text-gray-700">
+                    <div className="relative" ref={menuOut} onClick={() => (setMDep(!OpenDep))}>
                       <Input 
                           type='text' 
-                          id="Categoria" 
-                          className="cursor-pointer input w-full pl-3 pr-11 py-3 flex gap-0.5 disabled:text-gray-500 text-black" 
-                          placeholder="Seleccione una categoría" 
-                          readOnly 
-                          value={selectedDiscipline?.categoria ?? "Seleccione una categoría"} 
-                          required 
-                          disabled={!selectedSportName} 
+                          id="deporte" 
+                          className="cursor-pointer input w-full pl-3 py-3 placeholder:text-black" 
+                          required readOnly 
+                          value={selectedSportName ?? "Seleccione un deporte"}
                       />
-                      <Button type="button" className=" cursor-pointer absolute top-1/2 right-1 lg:right-4 flex justify-center -translate-y-1/2 -translate-x-1/2">
-                          <Image className={`size-[1rem] transition-transform duration-300 ease-in-out ${OpenCat && selectedSportName ? 'rotate-180' : ' rotate-360'}`} src={'https://res.cloudinary.com/dnfvfft3w/image/upload/v1759101273/flecha-hacia-abajo-para-navegar_zixe1b.png'} alt="desplegar" width={100} height={100} />
+                      <Button type="button" className=" cursor-pointer absolute right-1 md:right-1 lg:right-4 top-1/2 flex justify-center -translate-y-1/2 -translate-x-1/2">
+                          <Image className={`size-[1rem] transition-transform duration-300 ease-in-out ${OpenDep ? 'rotate-180' : ' rotate-360'}`} src={'https://res.cloudinary.com/dnfvfft3w/image/upload/v1759101273/flecha-hacia-abajo-para-navegar_zixe1b.png'} alt="desplegar" width={100} height={100} />
                       </Button>
-                      <div className={`absolute z-20 bg-white shadow-lg mt-1 rounded-xl overflow-hidden overflow-y-auto ${OpenCat ? 'w-full h-auto' : 'max-h-0 opacity-0 pointer-events-none'}`} >
-                          {availableCategories.map((discipline) => (
+                      <div className={`absolute z-20 bg-white shadow-lg mt-1 rounded-xl overflow-hidden overflow-y-auto ${OpenDep ? 'w-full h-[6.75rem]' : 'max-h-0 opacity-0 pointer-events-none'}`}>
+                          {uniqueSports.map((sportName) => (
                           <div 
-                              key={discipline.id} 
+                              key={sportName} 
                               className="w-full flex gap-2 p-1.5 hover:bg-unimar/15 place-items-center" 
-                              onClick={() => handleSelectC(discipline)} 
+                              onClick={() => (handleSelectD(sportName))}
                           >
-                              <span className="ml-2">{discipline.categoria}</span>
+                              <span className="ml-2">{sportName}</span>
                           </div>
                           ))}
                       </div>
-                      </div>
-                  </InputGroup> 
+                    </div>
+                </InputGroup> 
 
-                  <InputGroup For="Torneo" label="Nombre del Torneo" labelClass="text-gray-700" className="md:col-span-2">
-                      <div className="relative">
-                      <Input 
-                          type="text" 
-                          id="Torneo" 
-                          className="input w-full pl-6 pr-3 py-3 placeholder:text-black" 
-                          value={tournament?.nombre || 'Cargando...'}
-                          disabled
-                      />
-                      </div>
-                  </InputGroup>
-                  </div>
-                </section>
-
-            <AnimatePresence>
-                {selectedDiscipline && (
-                    <motion.div
-                        initial={{ height: 0, opacity: 0 }}
-                        animate={{ height: "auto", opacity: 1 }}
-                        exit={{ height: 0, opacity: 0 }}
-                        transition={{ duration: 0.4, ease: "easeInOut" }}
-                        className="overflow-hidden"
+                <InputGroup For="Categoria" label="Categoría" labelClass="text-gray-700">
+                    <div 
+                    className="relative" 
+                    ref={menuOutC} 
+                    onClick={() => selectedSportName && setMCat(!OpenCat)}
                     >
-                        <section className="flex flex-col space-y-5 py-4">
-                            <div className="section-title flex flex-col space-y-4 p-4 bg-gray-100 shadow rounded-xl">
-                                <div className="flex place-items-center gap-2">
-                                  <div className="relative size-[52px] bg-unimar/5 rounded-full">
+                    <Input 
+                        type='text' 
+                        id="Categoria" 
+                        className="cursor-pointer input w-full pl-3 pr-11 py-3 flex gap-0.5 disabled:text-gray-500 text-black" 
+                        placeholder="Seleccione una categoría" 
+                        readOnly 
+                        value={selectedDiscipline?.categoria ?? "Seleccione una categoría"} 
+                        required 
+                        disabled={!selectedSportName} 
+                    />
+                    <Button type="button" className=" cursor-pointer absolute top-1/2 right-1 lg:right-4 flex justify-center -translate-y-1/2 -translate-x-1/2">
+                        <Image className={`size-[1rem] transition-transform duration-300 ease-in-out ${OpenCat && selectedSportName ? 'rotate-180' : ' rotate-360'}`} src={'https://res.cloudinary.com/dnfvfft3w/image/upload/v1759101273/flecha-hacia-abajo-para-navegar_zixe1b.png'} alt="desplegar" width={100} height={100} />
+                    </Button>
+                    <div className={`absolute z-20 bg-white shadow-lg mt-1 rounded-xl overflow-hidden overflow-y-auto ${OpenCat ? 'w-full h-auto' : 'max-h-0 opacity-0 pointer-events-none'}`} >
+                        {availableCategories.map((discipline) => (
+                        <div 
+                            key={discipline.id} 
+                            className="w-full flex gap-2 p-1.5 hover:bg-unimar/15 place-items-center" 
+                            onClick={() => handleSelectC(discipline)} 
+                        >
+                            <span className="ml-2">{discipline.categoria}</span>
+                        </div>
+                        ))}
+                    </div>
+                    </div>
+                </InputGroup> 
+
+                <InputGroup For="Torneo" label="Nombre del Torneo" labelClass="text-gray-700" className="md:col-span-2">
+                    <div className="relative">
+                    <Input 
+                        type="text" 
+                        id="Torneo" 
+                        className="input w-full pl-6 pr-3 py-3 placeholder:text-black" 
+                        value={tournament?.nombre || 'Cargando...'}
+                        disabled
+                    />
+                    </div>
+                </InputGroup>
+                </div>
+              </section>
+
+          <AnimatePresence>
+              {selectedDiscipline && (
+                  <motion.div
+                      initial={{ height: 0, opacity: 0 }}
+                      animate={{ height: "auto", opacity: 1 }}
+                      exit={{ height: 0, opacity: 0 }}
+                      transition={{ duration: 0.4, ease: "easeInOut" }}
+                      className="overflow-hidden"
+                  >
+                      <section className="flex flex-col space-y-5 py-4">
+                          <div className="section-title flex flex-col space-y-4 p-4 bg-gray-100 shadow rounded-xl">
+                              <div className="flex place-items-center gap-2">
+                                <div className="relative size-[52px] bg-unimar/5 rounded-full">
+                                    <Image
+                                    className=" absolute inset-0 object-contain grayscale-20"
+                                    src={'/personas.png'}
+                                    alt="Equipo"
+                                    fill
+                                    />
+                                </div>
+                                <div className="text-start">
+                                    <h3 className="text-[1.3rem] font-bold">2. Información del Equipo</h3>
+                                </div>
+                              </div>
+                              <div className="flex flex-col px-2">
+                                <div className="mb-6 px-2 gap-3 place-content-center">
+                                    <div className="text-start space-y-3">
+                                    <InputGroup label="Nombre del equipo" labelClass="text-gray-500" For="nombre">
+                                        <Input
+                                        className="input w-full"
+                                        type="text"
+                                        value={teamData.nombre}
+                                        onChange={(e) => handleChange("nombre", e.target.value)}
+                                        placeholder="Ej: Los Campeones"
+                                        /> 
+                                        {errors.nombre && <p className="text-red-500 text-sm mt-1">{errors.nombre}</p>}
+                                    </InputGroup> 
+                                    <InputGroup label="Madrina del equipo" labelClass="text-gray-500" For="madrina">
+                                        <Input
+                                        className="input"
+                                        type="text"
+                                        value={teamData.madrina}
+                                        onChange={(e) => handleChange("madrina", e.target.value)}
+                                        placeholder="Ej: María Villarroel"
+                                        /> 
+                                        {errors.madrina && <p className="text-red-500 text-sm mt-1">{errors.madrina}</p>}
+                                    </InputGroup> 
+                                    <InputGroup label="Color del uniforme" labelClass="text-gray-500" For="color">
+                                        <Input
+                                        className="input"
+                                        type="text"
+                                        value={teamData.color}
+                                        onChange={(e) => handleChange("color", e.target.value)}
+                                        placeholder="Ej: Azul y Blanco"
+                                        /> 
+                                        {errors.color && <p className="text-red-500 text-sm mt-1">{errors.color}</p>}
+                                    </InputGroup>  
+                                    </div>
+                                </div>
+                              </div>
+                      </div>
+
+                          <div className="flex flex-col p-3 bg-gray-100 shadow rounded-xl">
+                              <UploadLogo
+                                  label="Logo del equipo"
+                                  file={teamData.logo}
+                                  error={errors.logo}
+                                  onFileChange={(file: File | null) => {
+                                  setTeamData(prev => ({ ...prev, logo: file }));
+                                  if (file) {
+                                  setErrors(prev => ({ ...prev, logo: "" }));
+                                  }
+                              }}
+                              />
+                              {errors.logo && <p className="text-red-500 text-sm mb-0.5">{errors.logo}</p>}
+                          </div>
+
+                          <section className="flex flex-col space-y-4 p-4 bg-gray-100 shadow rounded-xl">
+                              <div className="flex items-center gap-2">
+                                  <div className="relative size-[52px] bg-unimar/8 rounded-full">
                                       <Image
-                                      className=" absolute inset-0 object-contain grayscale-20"
-                                      src={'/personas.png'}
-                                      alt="Equipo"
-                                      fill
+                                          className="absolute inset-0 object-contain"
+                                          src="/deporte.png"
+                                          alt="Integrantes"
+                                          fill
                                       />
                                   </div>
-                                  <div className="text-start">
-                                      <h3 className="text-[1.3rem] font-bold">2. Información del Equipo</h3>
-                                  </div>
-                                </div>
-                                <div className="flex flex-col px-2">
-                                  <div className="mb-6 px-2 gap-3 place-content-center">
-                                      <div className="text-start space-y-3">
-                                      <InputGroup label="Nombre del equipo" labelClass="text-gray-500" For="nombre">
-                                          <Input
-                                          className="input w-full"
-                                          type="text"
-                                          value={teamData.nombre}
-                                          onChange={(e) => handleChange("nombre", e.target.value)}
-                                          placeholder="Ej: Los Campeones"
-                                          /> 
-                                          {errors.nombre && <p className="text-red-500 text-sm mt-1">{errors.nombre}</p>}
-                                      </InputGroup> 
-                                      <InputGroup label="Madrina del equipo" labelClass="text-gray-500" For="madrina">
-                                          <Input
-                                          className="input"
-                                          type="text"
-                                          value={teamData.madrina}
-                                          onChange={(e) => handleChange("madrina", e.target.value)}
-                                          placeholder="Ej: María Villarroel"
-                                          /> 
-                                          {errors.madrina && <p className="text-red-500 text-sm mt-1">{errors.madrina}</p>}
-                                      </InputGroup> 
-                                      <InputGroup label="Color del uniforme" labelClass="text-gray-500" For="color">
-                                          <Input
-                                          className="input"
-                                          type="text"
-                                          value={teamData.color}
-                                          onChange={(e) => handleChange("color", e.target.value)}
-                                          placeholder="Ej: Azul y Blanco"
-                                          /> 
-                                          {errors.color && <p className="text-red-500 text-sm mt-1">{errors.color}</p>}
-                                      </InputGroup>  
+                                  <h3 className="text-[1.3rem] font-bold">Integrantes del Equipo</h3>
+                              </div>
+
+                              
+                              <p className="text-gray-600 text-sm font-medium">
+                                  Integrantes: {teamData.integrantes.length} / {maxIntegrantes}
+                                  (Mínimo requerido: {minIntegrantes})
+                              </p>
+
+                              {teamData.integrantes.map((int, i) => (
+                                  <div key={i} className="flex justify-between items-center bg-white p-3 rounded-xl shadow-sm">                                                
+                                      <div className="flex items-center gap-3">
+                                          <div className="size-10 flex items-center justify-center bg-blue-100 text-blue-600 font-bold rounded-full">
+                                              {int.dorsal}
+                                          </div>
+                                          <div className="text-start">
+                                              <p className="font-semibold text-gray-900">{int.cedula}</p>
+                                              <p className="text-gray-500 text-sm">{int.correo}</p>
+                                              <p className="text-gray-500 text-sm">{int.telefono}</p>
+                                          </div>
+
+                                      </div>
+                                      <div className="flex gap-1.5">
+                                          <button
+                                              onClick={() => handleSetCaptain(i)}
+                                              title="Designar como Capitán"
+                                              className={`p-2 rounded-full cursor-pointer transition-colors 
+                                                  ${captainIndex === i 
+                                                      ? 'bg-yellow-100/75 text-white' 
+                                                      : 'grayscale hover:bg-yellow-200/75'
+                                                  }`}
+                                          >
+                                              <Image
+                                                  src={`/favorito.png`}
+                                                  width={28}
+                                                  height={36}
+                                                  alt="capitan"
+                                              />
+                                          </button>
+                                          <button
+                                              onClick={() => handleEditIntegrante(i)}
+                                              className=" hover:bg-gray-200 p-2 rounded-full cursor-pointer"
+                                          >
+                                              <Image src="/lapiz (1).png" alt="Editar" width={24} height={16} />
+                                          </button>
+                                          <button
+                                              onClick={() => handleRemoveIntegrante(i)}
+                                              className=" hover:bg-rose-200 p-2 rounded-full cursor-pointer"
+                                          >
+                                              <Image src="/basura (1).png" alt="Eliminar" width={24} height={16} />
+                                          </button>
                                       </div>
                                   </div>
-                                </div>
-                        </div>
 
-                            <div className="flex flex-col p-3 bg-gray-100 shadow rounded-xl">
-                                <UploadLogo
-                                label="Logo del equipo"
-                                file={teamData.logo}
-                                error={errors.logo}
-                                onFileChange={(file: File | null) => {
-                                    setTeamData(prev => ({ ...prev, logo: file }));
-                                    if (file) {
-                                    setErrors(prev => ({ ...prev, logo: "" }));
-                                    }
-                                }}
-                                />
-                                {errors.logo && <p className="text-red-500 text-sm mb-0.5">{errors.logo}</p>}
-                            </div>
+                              ))}
 
-                            <section className="flex flex-col space-y-4 p-4 bg-gray-100 shadow rounded-xl">
-                                <div className="flex items-center gap-2">
-                                    <div className="relative size-[52px] bg-unimar/8 rounded-full">
-                                        <Image
-                                            className="absolute inset-0 object-contain"
-                                            src="/deporte.png"
-                                            alt="Integrantes"
-                                            fill
-                                        />
-                                    </div>
-                                    <h3 className="text-[1.3rem] font-bold">Integrantes del Equipo</h3>
-                                </div>
+                                  <div className="flex flex-wrap items-start gap-4 p-3 bg-gray-50 rounded-xl border border-dashed border-gray-300">
+                                      
+                                      <div className="w-20"> 
+                                          <Input
+                                              placeholder="Dorsal"
+                                              value={nuevo.dorsal}
+                                              onChange={(e) => setNuevo({ ...nuevo, dorsal: e.target.value })}
+                                              className="input w-full"
+                                          />
+                                          {integranteError.dorsal && <p className="text-red-500 text-xs mt-1">{integranteError.dorsal}</p>}
+                                      </div>
+                                  
+                                      <div className="flex-1 min-w-[120px]"> 
+                                          <Input
+                                              placeholder="Teléfono (04...)"
+                                              value={nuevo.telefono}
+                                              onChange={(e) => setNuevo({ ...nuevo, telefono: e.target.value })}
+                                              className="input w-full"
+                                          />
+                                          {integranteError.telefono && <p className="text-red-500 text-xs mt-1">{integranteError.telefono}</p>}
+                                      </div>
+                                      
+                                      <div className="flex-1 min-w-[150px]">
+                                          <div className="relative flex items-center">
+                                              <span className="absolute left-3 text-gray-500">V-</span>
+                                              <Input
+                                                  placeholder="Cédula (solo números)"
+                                                  value={nuevo.cedula}
+                                                  onChange={(e) => setNuevo({ ...nuevo, cedula: e.target.value })}
+                                                  className="input w-full pl-8"
+                                              />
+                                          </div>
+                                          {integranteError.cedula && <p className="text-red-500 text-xs mt-1">{integranteError.cedula}</p>}
+                                      </div>
 
-                                
-                                <p className="text-gray-600 text-sm font-medium">
-                                    Integrantes: {teamData.integrantes.length} / {maxIntegrantes}
-                                    (Mínimo requerido: {minIntegrantes})
-                                </p>
+                                      <div className="flex-1 min-w-[180px]"> 
+                                          <Input
+                                              placeholder="usuario@unimar.edu.ve"
+                                              value={nuevo.correo}
+                                              onChange={(e) => setNuevo({ ...nuevo, correo: e.target.value })}
+                                              className="input w-full"
+                                          />
+                                          {integranteError.correo && <p className="text-red-500 text-xs mt-1">{integranteError.correo}</p>}
+                                      </div>
 
-                                {teamData.integrantes.map((int, i) => (
-                                    <div key={i} className="flex justify-between items-center bg-white p-3 rounded-xl shadow-sm">                                                
-                                        <div className="flex items-center gap-3">
-                                            <div className="size-10 flex items-center justify-center bg-blue-100 text-blue-600 font-bold rounded-full">
-                                                {int.dorsal}
-                                            </div>
-                                            <div className="text-start">
-                                                <p className="font-semibold text-gray-900">{int.cedula}</p>
-                                                <p className="text-gray-500 text-sm">{int.correo}</p>
-                                                <p className="text-gray-500 text-sm">{int.telefono}</p>
-                                            </div>
+                                      <Button
+                                          onClick={handleAddIntegrante}
+                                          className={`${
+                                              editIndex !== null ? "bg-blue-500" : "bg-unimar"
+                                          } text-white font-bold rounded-xl px-4 w-full py-2 cursor-pointer mt-4`}
+                                      >
+                                          {editIndex !== null ? "Guardar cambios" : "Añadir integrante"}
+                                      </Button>
+                                  </div>
+                          </section>
+                      </section>
+                  </motion.div>
+              )}
+          </AnimatePresence>
+          </div>
 
-                                        </div>
-                                        <div className="flex gap-1.5">
-                                            <button
-                                                onClick={() => handleSetCaptain(i)}
-                                                title="Designar como Capitán"
-                                                className={`p-2 rounded-full cursor-pointer transition-colors 
-                                                    ${captainIndex === i 
-                                                        ? 'bg-yellow-100/75 text-white' 
-                                                        : 'grayscale hover:bg-yellow-200/75'
-                                                    }`}
-                                            >
-                                                <Image
-                                                    src={`/favorito.png`}
-                                                    width={28}
-                                                    height={36}
-                                                    alt="capitan"
-                                                />
-                                            </button>
-                                            <button
-                                                onClick={() => handleEditIntegrante(i)}
-                                                className=" hover:bg-gray-200 p-2 rounded-full cursor-pointer"
-                                            >
-                                                <Image src="/lapiz (1).png" alt="Editar" width={24} height={16} />
-                                            </button>
-                                            <button
-                                                onClick={() => handleRemoveIntegrante(i)}
-                                                className=" hover:bg-rose-200 p-2 rounded-full cursor-pointer"
-                                            >
-                                                <Image src="/basura (1).png" alt="Eliminar" width={24} height={16} />
-                                            </button>
-                                        </div>
-                                    </div>
-
-                                ))}
-
-                                    <div className="flex flex-wrap items-start gap-4 p-3 bg-gray-50 rounded-xl border border-dashed border-gray-300">
-                                        
-                                        <div className="w-20"> 
-                                            <Input
-                                                placeholder="Dorsal"
-                                                value={nuevo.dorsal}
-                                                onChange={(e) => setNuevo({ ...nuevo, dorsal: e.target.value })}
-                                                className="input w-full"
-                                            />
-                                            {integranteError.dorsal && <p className="text-red-500 text-xs mt-1">{integranteError.dorsal}</p>}
-                                        </div>
-                                    
-                                        <div className="flex-1 min-w-[120px]"> 
-                                            <Input
-                                                placeholder="Teléfono (04...)"
-                                                value={nuevo.telefono}
-                                                onChange={(e) => setNuevo({ ...nuevo, telefono: e.target.value })}
-                                                className="input w-full"
-                                            />
-                                            {integranteError.telefono && <p className="text-red-500 text-xs mt-1">{integranteError.telefono}</p>}
-                                        </div>
-                                        
-                                        <div className="flex-1 min-w-[150px]">
-                                            <div className="relative flex items-center">
-                                                <span className="absolute left-3 text-gray-500">V-</span>
-                                                <Input
-                                                    placeholder="Cédula (solo números)"
-                                                    value={nuevo.cedula}
-                                                    onChange={(e) => setNuevo({ ...nuevo, cedula: e.target.value })}
-                                                    className="input w-full pl-8"
-                                                />
-                                            </div>
-                                            {integranteError.cedula && <p className="text-red-500 text-xs mt-1">{integranteError.cedula}</p>}
-                                        </div>
-
-                                        <div className="flex-1 min-w-[180px]"> 
-                                            <Input
-                                                placeholder="usuario@unimar.edu.ve"
-                                                value={nuevo.correo}
-                                                onChange={(e) => setNuevo({ ...nuevo, correo: e.target.value })}
-                                                className="input w-full"
-                                            />
-                                            {integranteError.correo && <p className="text-red-500 text-xs mt-1">{integranteError.correo}</p>}
-                                        </div>
-
-                                        <Button
-                                            onClick={handleAddIntegrante}
-                                            className={`${
-                                                editIndex !== null ? "bg-blue-500" : "bg-unimar"
-                                            } text-white font-bold rounded-xl px-4 w-full py-2 cursor-pointer mt-4`}
-                                        >
-                                            {editIndex !== null ? "Guardar cambios" : "Añadir integrante"}
-                                        </Button>
-                                    </div>
-                            </section>
-                        </section>
-                    </motion.div>
-                )}
-            </AnimatePresence>
-            </div>
-
-            <FooterModal
-                className="flex-none"
-                BTmain="Finalizar Inscripción"
-                BTSecond="Cerrar"
-                onClose={handleCloseModal}
-                onSumit={handleFinalSubmit}
-                disabled={!selectedDiscipline || loading} 
-                />
-                
-        </ContainModal>
+          <FooterModal
+              className="flex-none"
+              BTmain="Finalizar Inscripción"
+              BTSecond="Cerrar"
+              onClose={handleCloseModal}
+              onSumit={handleFinalSubmit}
+              disabled={!selectedDiscipline || loading} 
+              />
+              
+      </ContainModal>
+  </Modal>
  );
 }

@@ -12,12 +12,21 @@ export default function Login(){
     )
 
     return(
-        <div className="relative bg-gradient-to-tl from-bg-unimar via-sky-900 to-cyan-600 color-gradient-animation  p-1 gap-1 sm:p-5 min-h-screen flex flex-col">
+        <div className="relative bg-gradient-to-tl from-unimar via-sky-900 to-cyan-600 color-gradient-animation  p-1 gap-1 sm:p-5 min-h-screen flex flex-col">
+            <Image 
+                className="absolute inset-0 z-5 size-full"
+                src={'https://res.cloudinary.com/dnfvfft3w/image/upload/v1758905980/flecha-correcta_2_l0zpid.png'}
+                alt={'logo'}
+                width={100}
+                height={100}
+            />
             <div className="absolute inset-0 z-10 backdrop-blur-sm bg-black/50"></div>
 
             <nav className="relative z-20 max-w-7xl sm:px-2.5 ">
                 <ActiveLink href="/">
-                    <Button className="flex gap-1 p-2 px-3 bg-blue-950 rounded-md shadow drop-shadow-2xl place-content-center place-items-center hover:scale-105 hover:opacity-85 transition-all ">
+                    <Button className="flex gap-1 p-2 px-3 rounded-md shadow drop-shadow-2xl place-content-center place-items-center hover:scale-105 hover:opacity-85 transition-all
+                    bg-unimar/60 
+                    ">
                         <Image 
                         className="w-6 rotate-180"
                         src={'https://res.cloudinary.com/dnfvfft3w/image/upload/v1758905980/flecha-correcta_2_l0zpid.png'}
@@ -34,7 +43,7 @@ export default function Login(){
                 <div className="w-full space-y-2 max-w-md mx-auto shadow-2xl drop-shadow-lg border-0 bg-white rounded-lg text-black">
                     <div className=" text-center pt-8 px-6 m-0 place-items-center">
                         <Image
-                            className='bg-transparent size-24 rounded-full ring-8 border-4 border-white ring-[#0038B7] mb-3 '
+                            className='size-28 rounded-full ring-8 border-4  mb-3 '
                             src={"https://res.cloudinary.com/dnfvfft3w/image/upload/v1758470505/Copilot_20250921_112653_uvcshl.png"}
                             alt='logo'
                             width={700}

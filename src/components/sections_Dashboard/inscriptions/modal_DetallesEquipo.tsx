@@ -17,6 +17,13 @@ interface ApiUser {
   telefono: string | null;
 }
 
+const titles = [
+     {id:1, titulo:'Dorsal'},
+     {id:2, titulo:'Usuario'},
+     {id:3, titulo:'Cedula'},
+     {id:4, titulo:'Email'},
+]
+
 //tabla inscripciones
 interface ApiTeam {
   id: number;
@@ -84,11 +91,28 @@ export default function modal_DetallesEquipo({ entryData, teamData, isLoading, o
                                 <p><strong>Imagen</strong>{teamData.logo}</p>                                
                                 <h4>Integrantes ({teamData.integrantes_total}):</h4>
                                 <ul>
-                                    {teamData.integrantes_data.map(member => (
-                                        <li key={member.id}>
-                                        {member.id} {member.nombre} {member.cedula} ({member.email})
-                                        </li>
-                                    ))}
+                                     <Table>
+                                         <TableHead className="text-gray-100  bg-unimar">
+                                        {titles.map((t)=>(
+                                            <TableHeaderCell key={t.id} className="first:rounded-l-lg last:rounded-r-lg p-2 justify-center text-center font-semibold ">
+                                                {t.titulo}
+                                              </TableHeaderCell>
+                                            ))}
+                                        </TableHead>
+                                        
+                                        <TableBody className="bg-gray-100 divide-y divide-gray-200">
+                                            {teamData.integrantes_data.map(member => (
+                                                <TableRow key={member.id}>
+                                                    <TableCell>{member.id}</TableCell>
+                                                    <TableCell>{member.nombre} </TableCell>
+                                                    <TableCell>{member.cedula} </TableCell>
+                                                    <TableCell>{member.email} </TableCell>
+                                                    
+                                                   
+                                                </TableRow>
+                                            ))}
+                                        </TableBody>
+                                    </Table>
                                 </ul>
                             </div>
                         ) : (

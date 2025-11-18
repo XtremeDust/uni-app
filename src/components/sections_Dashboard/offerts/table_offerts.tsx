@@ -23,6 +23,7 @@ const buttons = [
 interface Sport{
     id:number,
     titulo:string;
+    deleted_at:string;
 }
 
 interface Entrenador{
@@ -217,7 +218,22 @@ export default function table_offerts() {
                                 <TableBody className="bg-white divide-y divide-gray-200">
                                     {offerings.map((data)=>(
                                         <TableRow key={data.id} className="hover:bg-gray-100 text-center">
-                                            <TableCell className="font-bold">{data.deporte.titulo}</TableCell>
+                                            
+                                             <TableCell className="font-bold">
+                                                {data.deporte ? (
+                                                    // Si el deporte existe, muestra el título
+                                                    <span>{data.deporte.titulo}</span>
+                                                ) : (
+                                                    // Si data.sport es null (por si acaso), muestra un fallback
+                                                    <span className="text-red-500 italic">Deporte no disponible</span>
+                                                )}
+
+                                                {/* Opcional: Muestra si fue borrado (si tiene 'deleted_at') */}
+                                                {data.deporte?.deleted_at && (
+                                                    <span className="text-xs text-red-400 block">(Eliminado)</span>
+                                                )}
+                                            </TableCell>
+                                           
                                             <TableCell>{data.trimestre}</TableCell>
                                             <TableCell>{data.entrenador.nombre}</TableCell>
                                             <TableCell>{data.inscritos_actuales}/{data.cupos}</TableCell>
