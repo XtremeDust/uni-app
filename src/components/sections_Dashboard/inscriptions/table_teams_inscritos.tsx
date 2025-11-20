@@ -10,7 +10,7 @@ import {
   TableHead, TableHeaderCell,
   Modal,
  } from '@/types/ui_components'
-import TeamModal from '@/components/sections_Dashboard/inscriptions/team_modal';
+import TeamModal from '@/components/sections_Dashboard/inscriptions/modal_AddTeam';
 import DetalleEquipoModal from '@/components/sections_Dashboard/inscriptions/modal_DetallesEquipo'
 import ModalCambioEstado from '@/components/sections_Dashboard/inscriptions/modal_CambioEstado'
 
@@ -119,21 +119,48 @@ export default function table_teams_inscritos() {
             ...filteredEst,
         ];
 
-        const handleActionClick = (buttonId: number, x:string) => {
+        const handleActionClick = async (buttonId: number, entry:any) => {
             
             if (buttonId === 1) {
                 console.log('ACCIÓN: Descargar');
-                console.log(x);
+                console.log(entry);
             }
             
             if (buttonId === 2) {
-                console.log('ACCIÓN: Editar');
-                console.log(x);
+                if (!entry.team_id_for_modal) {
+                    alert("La edición de inscripciones individuales se maneja diferente.");
+                    return;
+                }
+
+                try {
+
+                    const res = await fetch(`${API_URL}/teams/${entry.team_id_for_modal}`);
+                    if (!res.ok) throw new Error("No se pudieron cargar los detalles del equipo");
+                    const teamJson = await res.json();
+                    
+                    const fullDataForModal = {
+                        ...teamJson.data, 
+                        ...entry, 
+
+                        id: entry.id, 
+                        
+                        integrantes_data: teamJson.data.integrantes_data || teamJson.data.integrantes || []
+                    };
+
+                    console.log("Datos corregidos para modal (ID debe ser la inscripción):", fullDataForModal);
+
+                    setEditingTeam(fullDataForModal);
+                    setIsTeamModalOpen(true);
+
+                } catch (error: any) {
+                    console.error(error);
+                    alert("Error al cargar los datos: " + error.message);
+                }
             }
             
             if (buttonId === 3) {
                 console.log('ACCIÓN: Eliminar');
-                console.log(x);
+                console.log(entry);
             }
         };
 
@@ -142,6 +169,8 @@ export default function table_teams_inscritos() {
 
         const [loading, setLoading] = useState(true);
         const [error, setError] = useState<string|null>(null);
+
+        const [editingTeam, setEditingTeam] = useState<ApiTeam | null>(null);
 
         // modal
             const [isModalOpen, setIsModalOpen] = useState(false);
@@ -156,45 +185,71 @@ export default function table_teams_inscritos() {
             const [selectedEntryForState, setSelectedEntryForState] = useState<ApiTeam | null>(null);
             const [isSavingState, setIsSavingState] = useState(false); 
         //
-        
-        useEffect(() => {
-            async function fetchAllData() {
-                try {
-                    setLoading(true);
-                    setError(null);
 
-                    const API_URL = process.env.NEXT_PUBLIC_API_URL;
-                    // Ejecutamos ambas peticiones en paralelo
-                    const [   teamsRes] = await Promise.all([
-                        fetch(`${API_URL}/teams-inscription`),
-                        fetch(`${API_URL}/teams`),
-                        fetch(`${API_URL}/subscribed-users`),
-                    ]);
-
-                    // Comprobamos si ambas respuestas son exitosas
-                    if (!teamsRes.ok) throw new Error(`Error en inscripciones: ${teamsRes.statusText}`);
-                    const teamsData = await teamsRes.json();
-
-                    // 3. Guardamos los datos
-                    // Nota: Laravel API Resources envuelven la colección en una clave 'data'
-                    setTeams(teamsData.data); 
-
-                } catch (e: any) {
-                    console.error("Error al cargar datos:", e);
-                    setError(e.message || "Error desconocido");
-                } finally {
-                    setLoading(false);
+        const fetchAllData = async()=>{
+            setLoading(true);
+            setError(null);
+            const API_URL = process.env.NEXT_PUBLIC_API_URL;
+                    try {
+                        const [   teamsRes] = await Promise.all([
+                            fetch(`${API_URL}/teams-inscription`),
+                            fetch(`${API_URL}/teams`),
+                            fetch(`${API_URL}/subscribed-users`),
+                        ]);
+                        if (!teamsRes.ok) throw new Error(`Error en inscripciones: ${teamsRes.statusText}`);
+                        const teamsData = await teamsRes.json();
+                        setTeams(teamsData.data); 
+    
+                    } catch (e: any) {
+                        console.error("Error al cargar datos:", e);
+                        setError(e.message || "Error desconocido");
+                    } finally {
+                        setLoading(false);
+                    }
                 }
-            }
 
-        fetchAllData();
-        }, []); 
+            useEffect(() => {
+                fetchAllData();
+            }, []);
+
+        {/**
+            useEffect(() => {
+                async function fetchAllData() {
+                    try {
+                        setLoading(true);
+                        setError(null);
+                        const API_URL = process.env.NEXT_PUBLIC_API_URL;
+                        // Ejecutamos ambas peticiones en paralelo
+                        const [   teamsRes] = await Promise.all([
+                            fetch(`${API_URL}/teams-inscription`),
+                            fetch(`${API_URL}/teams`),
+                            fetch(`${API_URL}/subscribed-users`),
+                        ]);
+    
+                        // Comprobamos si ambas respuestas son exitosas
+                        if (!teamsRes.ok) throw new Error(`Error en inscripciones: ${teamsRes.statusText}`);
+                        const teamsData = await teamsRes.json();
+    
+                        // 3. Guardamos los datos
+                        // Nota: Laravel API Resources envuelven la colección en una clave 'data'
+                        setTeams(teamsData.data); 
+    
+                    } catch (e: any) {
+                        console.error("Error al cargar datos:", e);
+                        setError(e.message || "Error desconocido");
+                    } finally {
+                        setLoading(false);
+                    }
+                }
+    
+            fetchAllData();
+            }, []);
+            */}
 
         
-        if (loading) return <p>Cargando datos...</p>;
-        if (error) return <p>Error al cargar: {error}</p>;
+    if (loading) return <p>Cargando datos...</p>;
+    if (error) return <p>Error al cargar: {error}</p>;
 
-    // --- Función para abrir el MODAL y buscar detalles ---
     const API_URL = process.env.NEXT_PUBLIC_API_URL;
     const handleVerDetalles = async (entry: ApiTeam) => {
         
@@ -237,7 +292,7 @@ export default function table_teams_inscritos() {
         headers: { 
             "Content-Type": "application/json",
             "Accept": "application/json",
-            // 'Authorization': `Bearer ${token}` // <-- No olvides la autenticación
+            // 'Authorization': `Bearer ${token}`
         },
         body: JSON.stringify({ state: newState }),
         });
@@ -247,10 +302,9 @@ export default function table_teams_inscritos() {
             throw new Error(errData.message || "Error al actualizar el estado");
         }
 
-        alert("Estado actualizado correctamente "); //✅
+        alert("Estado actualizado correctamente ");
         setIsStateModalOpen(false);
 
-        // 🔁 Refresca la lista localmente sin recargar toda la página
         setTeams((prevTeams) =>
         prevTeams.map((t) =>
             t.id === selectedEntryForState.id ? { ...t, estado: newState as any } : t
@@ -365,7 +419,7 @@ export default function table_teams_inscritos() {
                                         }
                                     }
                                     }
-                                    className={`items-center rounded-full px-4 py-2 font-semibold text-gray-950
+                                    className={`items-center rounded-full p-2 text-sm font-semibold text-gray-950
                                         ${entry.estado==='Aceptado'? ' bg-green-200/65 text-green-800' :
                                         (entry.estado==='Rechazado'? 'bg-red-200/65 text-red-800': 'bg-yellow-200/65 text-yellow-800')}`}>
                                         {entry.estado}
@@ -380,7 +434,7 @@ export default function table_teams_inscritos() {
                                         >
                                             <Button className={`btn rounded-lg cursor-pointer size-12 ${btn.id ===1? 'hover:bg-unimar/10' : (btn.id===2? 'hover:bg-gray-300/50': 'hover:bg-rose-300/50' )}`}
                                                 onClick={() => { 
-                                                    handleActionClick(btn.id, entry.nombre)
+                                                    handleActionClick(btn.id, entry)
                                                 }}
                                             >
                                                 <Image
@@ -407,7 +461,6 @@ export default function table_teams_inscritos() {
             )}                             
         </div>
 
-    {/* --- El Modal de equipos --- */}
     {isModalOpen && (
         <DetalleEquipoModal
             entryData={selectedEntry}
@@ -418,7 +471,6 @@ export default function table_teams_inscritos() {
         />
     )}
 
-    {/* --- El Modal de estado --- */}
     {isStateModalOpen && selectedEntryForState && (
     <ModalCambioEstado
         teamName={selectedEntryForState.nombre}
@@ -430,11 +482,15 @@ export default function table_teams_inscritos() {
     />
     )}
 
-      {/* --- El Modal inscripbir --- */}
     {isTeamModalOpen && (       
         <TeamModal 
             state={isTeamModalOpen}
-            onCloseExternal={() => setIsTeamModalOpen(false)}
+            onCloseExternal={() => {
+                setIsTeamModalOpen(false);
+                setEditingTeam(null); 
+            }}
+            inscriptionToEdit={editingTeam} 
+            onSaveSuccess={fetchAllData}
         />       
     )}
     </section>

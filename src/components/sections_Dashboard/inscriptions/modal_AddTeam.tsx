@@ -8,6 +8,8 @@ import UploadLogo from "@/components/ui/UpLoad_IMG";
 interface ModalProps {
     onCloseExternal: () => void;
     state:boolean;
+    inscriptionToEdit?: any | null;
+    onSaveSuccess?:()=>void;
 }
 
 interface ApiDiscipline {
@@ -32,13 +34,17 @@ interface ApiTournament {
     reglamentos_torneo: any[];
 }
 
-export default function team_modal({onCloseExternal, state}:ModalProps) {
+export default function team_modal({onCloseExternal, state, inscriptionToEdit, onSaveSuccess}:ModalProps){
+  
+  const isEditMode = !!inscriptionToEdit;
+
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [tournament, setTournament] = useState<ApiTournament | null>(null);
 
   const [selectedSportName, setSelectedSportName] = useState<string | null>(null); 
   const [selectedDiscipline, setSelectedDiscipline] = useState<ApiDiscipline | null>(null); 
+  const [existingLogoUrl, setExistingLogoUrl] = useState<string | null>(null);
 
   const [OpenDep, setMDep] = useState(false);
   const [OpenCat, setMCat] = useState(false);
@@ -50,6 +56,7 @@ export default function team_modal({onCloseExternal, state}:ModalProps) {
       madrina: "",
       color: "",
       logo: null as File | null,
+      previewUrl: null as string | null,
       integrantes: [] as { dorsal: string; correo: string; cedula: string; telefono: string; isCaptain?: boolean }[],
     });
 
@@ -203,6 +210,11 @@ export default function team_modal({onCloseExternal, state}:ModalProps) {
     });
   };
 
+    const handleFileChange = (file: File | null) => {
+      setTeamData(prev => ({ ...prev, logo: file, previewUrl: null }));
+    if (file) setErrors(prev => ({ ...prev, logo: "" }));
+  };
+
   const validateStep3 = () => {
     const newErrors: any = { integrantes: [] };
     let valid = true;
@@ -210,7 +222,13 @@ export default function team_modal({onCloseExternal, state}:ModalProps) {
     if (!teamData.nombre) { newErrors.nombre = "El nombre del equipo es obligatorio."; valid = false; }
     if (!teamData.color) { newErrors.color = "Debes indicar el color del uniforme."; valid = false; }
     if (!teamData.madrina) { newErrors.madrina = "Debes indicar el nombre de la madrina."; valid = false; }
-    if (!teamData.logo) { newErrors.logo = "Debes subir el logo del equipo."; valid = false; }
+    
+    //if (!teamData.logo) { newErrors.logo = "Debes subir el logo del equipo."; valid = false; }
+    if (!isEditMode && !teamData.logo) { 
+        newErrors.logo = "Debes subir el logo."; valid = false; 
+    } else if (isEditMode && !teamData.logo && !existingLogoUrl) {
+        newErrors.logo = "Debes subir el logo."; valid = false;
+    }
     
     if (captainIndex === null) {
       alert("Debes seleccionar un capitán/delegado de la lista.");
@@ -250,7 +268,7 @@ export default function team_modal({onCloseExternal, state}:ModalProps) {
     data.append('team_name', teamData.nombre);
     data.append('madrina', teamData.madrina);
     data.append('color', teamData.color);
-    if (teamData.logo) data.append('logo', teamData.logo);
+    if (teamData.logo) {data.append('logo', teamData.logo)};
     data.append('delegado_correo', captainData.correo);
     data.append('delegado_telefono', captainData.telefono);
     data.append('integrantes', JSON.stringify(teamData.integrantes));
@@ -258,8 +276,18 @@ export default function team_modal({onCloseExternal, state}:ModalProps) {
     console.log("Datos listos para enviar al backend:", Object.fromEntries(data.entries()));
     
     const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api';
+    
+    let url = `${API_URL}/discipline-entries`; 
+
+    if (isEditMode && inscriptionToEdit) {
+        url = `${API_URL}/discipline-entries/${inscriptionToEdit.id}`;
+        data.append('_method', 'PUT'); 
+    } else {
+        data.append('discipline_id', selectedDiscipline!.id.toString());
+    }
+
     try {
-      const res = await fetch(`${API_URL}/discipline-entries`, {
+      const res = await fetch(url, {
         method: 'POST',
         body: data,
         // headers: { 'Authorization': `Bearer TU_TOKEN_AQUI` }
@@ -270,7 +298,8 @@ export default function team_modal({onCloseExternal, state}:ModalProps) {
         throw new Error(errorData.message || 'Error al crear la inscripción');
       }
       
-      alert("¡Inscripción enviada con éxito!");
+      alert(`¡Inscripción ${isEditMode ? 'actualizada' : 'creada'} con éxito!`);
+      if (onSaveSuccess) onSaveSuccess();
       handleCloseModal();
 
     } catch (e: any) {
@@ -292,53 +321,93 @@ export default function team_modal({onCloseExternal, state}:ModalProps) {
     return tournament.disciplinas.filter(d => d.nombre_deporte === selectedSportName);
   }, [tournament, selectedSportName]); 
 
-    useEffect(() => {
-    async function fetchCurrentTournament() {
+  useEffect(() => {
+    async function initModal() {
       setLoading(true);
       setError(null);
       const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api';
+
       try {
         const res = await fetch(`${API_URL}/current-tournament`);
-        if (!res.ok) {
-          throw new Error(`No hay torneos abiertos para inscripción (${res.statusText})`);
-        }
+        if (!res.ok) throw new Error(`No hay torneos abiertos.`);
         const jsonData = await res.json();
-        setTournament(jsonData.data);
+        const currentTournament = jsonData.data;
+        setTournament(currentTournament);
+
+        if (isEditMode && inscriptionToEdit) {
+            setSelectedSportName(inscriptionToEdit.disciplina); 
+
+            const foundDiscipline = currentTournament.disciplinas.find((d: ApiDiscipline) => 
+                d.nombre_deporte === inscriptionToEdit.disciplina && 
+                d.categoria === inscriptionToEdit.categoria
+            );
+            if (foundDiscipline) setSelectedDiscipline(foundDiscipline);
+
+            const rawMembers = inscriptionToEdit.integrantes_data || []; 
+
+            const members = rawMembers.map((u: any) => ({
+                dorsal: u.pivot?.dorsal || "0", 
+                correo: u.email || "",
+                cedula: u.cedula || "",
+                telefono: u.telefono || "",
+                isCaptain: inscriptionToEdit.captain ? u.id === inscriptionToEdit.captain.id : false
+            }));
+
+            const API_URL = process.env.NEXT_PUBLIC_API_URL?.replace('/api', '') || 'http://localhost:8000';
+      
+            const imageUrl = (inscriptionToEdit as any).logo ? `${API_URL}${(inscriptionToEdit as any).logo}` 
+             : null;
+
+            setTeamData({
+                nombre: inscriptionToEdit.nombre,
+                madrina: inscriptionToEdit.madrina || "",
+                color: inscriptionToEdit.color || "",
+                logo: null,
+                previewUrl: imageUrl,
+                integrantes: members
+            });
+            setExistingLogoUrl(inscriptionToEdit.logo); 
+            
+            const capIndex = members.findIndex((m: any) => m.isCaptain);
+            if (capIndex !== -1) setCaptainIndex(capIndex);
+        }
       } catch (e: any) {
         setError(e.message);
       } finally {
         setLoading(false);
       }
     }
-    fetchCurrentTournament();
-  }, []);
+
+    if (state) initModal();
+  }, [state, isEditMode, inscriptionToEdit]);
   
   useEffect(()=>{
     function handleOutClick(event: globalThis.MouseEvent) {
-      const target = event.target as Node;
-      if (OpenDep && menuOut.current && !menuOut.current.contains(target)) {
-        setMDep(false);
+        const target = event.target as Node;
+        if (OpenDep && menuOut.current && !menuOut.current.contains(target)) {
+          setMDep(false);
+        }
+        if (OpenCat && menuOutC.current && !menuOutC.current.contains(target)) {
+          setMCat(false);
+        }
       }
-      if (OpenCat && menuOutC.current && !menuOutC.current.contains(target)) {
-        setMCat(false);
+      if (OpenDep || OpenCat) {
+        document.addEventListener("mousedown", handleOutClick);
       }
-    }
-    if (OpenDep || OpenCat) {
-      document.addEventListener("mousedown", handleOutClick);
-    }
-    return () => {
-      document.removeEventListener("mousedown", handleOutClick);
-    };
+      return () => {
+        document.removeEventListener("mousedown", handleOutClick);
+      };
   }, [OpenDep, OpenCat]); 
 
   const handleCloseModal=()=>{
     onCloseExternal();
     setSelectedSportName(null);
     setSelectedDiscipline(null);
+    setExistingLogoUrl(null);
     setMDep(false);
     setMCat(false);
-
-    setTeamData({ nombre: "", madrina: "", color: "", logo: null, integrantes: [] });
+    
+    setTeamData({ nombre: "", madrina: "", color: "", logo: null, previewUrl:null, integrantes: [] });
     setErrors({ nombre: "", madrina: "", color: "", logo: "", integrantes: [] });
     setNuevo({ dorsal: "", correo: "", cedula: "", telefono: "" });
     setIntegranteError({ dorsal: "", correo: "", cedula: "", telefono: "" });
@@ -402,12 +471,13 @@ export default function team_modal({onCloseExternal, state}:ModalProps) {
           
           <HeaderModal className="flex-none" onClose={handleCloseModal}>
             <div className="text-start">
-                <h2 className="ml-5 title">Añadir Nueva Inscripción</h2>
-                <p className="ml-5 text-[1.2rem]">Seleccione la disciplina y complete los datos del equipo.</p>
+                <h2 className="ml-5 title">{isEditMode ? 'Editar Información del Equipo' : 'Añadir Nuevo Equipo'}</h2>
+                <p className="ml-5 text-[1.2rem]">{isEditMode ? 'Modifica los datos del equipo.' : 'Seleccione la disciplina y complete los datos del equipo.'}</p>
             </div>
           </HeaderModal>
 
           <div className="relative flex-grow main-modal overflow-y-auto px-4 space-y-2">
+             {!isEditMode &&(
               <section className="flex flex-col p-4 shadow rounded-xl bg-gray-100">
                 <div className="section-title mt-2 flex flex-row gap-2 ml-3 place-items-center">
                     <div className="relative size-[52px] bg-unimar/8 rounded-full">
@@ -436,7 +506,7 @@ export default function team_modal({onCloseExternal, state}:ModalProps) {
                       <Button type="button" className=" cursor-pointer absolute right-1 md:right-1 lg:right-4 top-1/2 flex justify-center -translate-y-1/2 -translate-x-1/2">
                           <Image className={`size-[1rem] transition-transform duration-300 ease-in-out ${OpenDep ? 'rotate-180' : ' rotate-360'}`} src={'https://res.cloudinary.com/dnfvfft3w/image/upload/v1759101273/flecha-hacia-abajo-para-navegar_zixe1b.png'} alt="desplegar" width={100} height={100} />
                       </Button>
-                      <div className={`absolute z-20 bg-white shadow-lg mt-1 rounded-xl overflow-hidden overflow-y-auto ${OpenDep ? 'w-full h-[6.75rem]' : 'max-h-0 opacity-0 pointer-events-none'}`}>
+                      <div className={`absolute z-20 bg-white shadow-lg mt-1 rounded-xl overflow-hidden overflow-y-auto ${uniqueSports.length < 2 ? OpenDep ? 'w-full h-auto' : 'max-h-0 opacity-0 pointer-events-none':OpenDep ? 'w-full h-[6.75rem]' : 'max-h-0 opacity-0 pointer-events-none'}`}>
                           {uniqueSports.map((sportName) => (
                           <div 
                               key={sportName} 
@@ -496,6 +566,7 @@ export default function team_modal({onCloseExternal, state}:ModalProps) {
                 </InputGroup>
                 </div>
               </section>
+             )}
 
           <AnimatePresence>
               {selectedDiscipline && (
@@ -518,7 +589,7 @@ export default function team_modal({onCloseExternal, state}:ModalProps) {
                                     />
                                 </div>
                                 <div className="text-start">
-                                    <h3 className="text-[1.3rem] font-bold">2. Información del Equipo</h3>
+                                    <h3 className="text-[1.3rem] font-bold">{isEditMode ? 'Información del Equipo':'2. Información del Equipo'}</h3>
                                 </div>
                               </div>
                               <div className="flex flex-col px-2">
@@ -561,18 +632,16 @@ export default function team_modal({onCloseExternal, state}:ModalProps) {
 
                           <div className="flex flex-col p-3 bg-gray-100 shadow rounded-xl">
                               <UploadLogo
-                                  label="Logo del equipo"
-                                  file={teamData.logo}
-                                  error={errors.logo}
-                                  onFileChange={(file: File | null) => {
-                                  setTeamData(prev => ({ ...prev, logo: file }));
-                                  if (file) {
-                                  setErrors(prev => ({ ...prev, logo: "" }));
-                                  }
-                              }}
+                                    label={isEditMode ? 'Cambiar Logo' : 'Logo del equipo'}
+                                      file={teamData.logo}
+                                      previewUrl={teamData.previewUrl}                          
+                                      error={errors.logo}
+                                      onFileChange={handleFileChange}
                               />
                               {errors.logo && <p className="text-red-500 text-sm mb-0.5">{errors.logo}</p>}
                           </div>
+
+                          
 
                           <section className="flex flex-col space-y-4 p-4 bg-gray-100 shadow rounded-xl">
                               <div className="flex items-center gap-2">
@@ -640,8 +709,8 @@ export default function team_modal({onCloseExternal, state}:ModalProps) {
 
                               ))}
 
-                                  <div className="flex flex-wrap items-start gap-4 p-3 bg-gray-50 rounded-xl border border-dashed border-gray-300">
-                                      
+                              {teamData.integrantes.length < maxIntegrantes && (
+                                  <div className="flex flex-wrap items-start gap-4 p-3 bg-gray-50 rounded-xl border border-dashed border-gray-300">               
                                       <div className="w-20"> 
                                           <Input
                                               placeholder="Dorsal"
@@ -694,6 +763,7 @@ export default function team_modal({onCloseExternal, state}:ModalProps) {
                                           {editIndex !== null ? "Guardar cambios" : "Añadir integrante"}
                                       </Button>
                                   </div>
+                              )}
                           </section>
                       </section>
                   </motion.div>
@@ -703,7 +773,7 @@ export default function team_modal({onCloseExternal, state}:ModalProps) {
 
           <FooterModal
               className="flex-none"
-              BTmain="Finalizar Inscripción"
+              BTmain={isEditMode ? 'Guardar Cambios' : 'Finalizar Inscripción'}
               BTSecond="Cerrar"
               onClose={handleCloseModal}
               onSumit={handleFinalSubmit}

@@ -4,6 +4,8 @@ import Image from 'next/image'
 import Modal_addtorneos from '@/components/sections_Dashboard/torneos/modal_AddTorneos'
 import Modal_addDiscipline from '@/components/sections_Dashboard/torneos/modal_Adddisciplinas'
 import DetallesTorneo from './modal_DetallesTorneo'
+import ConfirmDeleteModal from '@/components/ui/ConfirmDeleteModal' // <-- Importar modal eliminar
+
 import { 
   Input,
   Button, 
@@ -11,16 +13,16 @@ import {
   Table, 
   TableBody, TableCell, TableRow,
   TableHead, TableHeaderCell,
- } from '@/types/ui_components'
+} from '@/types/ui_components'
 
- const titleventos=[
+const titleventos=[
     {id:1, titulo:"Evento"},
     {id:2, titulo:"Disiplinas"},
     {id:3, titulo:"Inicia"},
     {id:4, titulo:"Termina"},
     {id:5, titulo:"Estado"},
     {id:6, titulo:"Acciones"},
- ]
+]
  
 interface ApiRegulation {
   id: number;
@@ -37,16 +39,16 @@ interface Creador {
   telefono: string;
 }
 
-  interface ApiList{
+interface ApiList{
     id:number
     nombre:string;
     estado: 'proximo'|'activo' | 'finalizado';
     inicio:string;
     fin:string;
-  total_disiplinas: string; 
-  }
+    total_disiplinas: string; 
+}
 
-interface ApiTournament {
+export interface ApiTournament {
   id: number;
   nombre: string;
   descripcion: string;
@@ -57,6 +59,7 @@ interface ApiTournament {
   fin: string;
   disciplinas:ApiDiscipline[];
   reglamentos_torneo:ApiRegulation[];
+  img?: string; 
 }
 
 const buttons = [
@@ -74,26 +77,25 @@ interface ApiDiscipline{
 
 export default function Table_Torneos() {
         const [isAddModalOpen, setIsAddModalOpen] = useState(false);
-    
         const [isAddDisciplineModalOpen, setIsAddDisciplineModalOpen] = useState(false);
-    
-        const handleOpenAddDiscipline = (tournament: ApiList) => {
-            setModalOpenT(false);
-            setIsAddDisciplineModalOpen(true);
-      };
-        const handleDisciplineCreated = () => {
-        refreshTournaments(); 
-      };
-    
-        const refreshTournaments = () => {
-            console.log("¡Refrescando lista de torneos!");
-            // fetchTournaments(); // (Descomenta esto si tienes la función)
-        };
-    
+        const [isModalOpenT, setModalOpenT] = useState(false);
+
+        const [tournaments, setTournaments] = useState<ApiTournament[]>([]);
+        const [selectedEntry, setSelectedEntry] = useState<ApiList | null>(null);
+        const [selectedT, setSelectedT]=useState<ApiTournament|null>(null);
+        
+        const [loading, setLoading] = useState(true);
+        const [error, setError] = useState<string | null>(null);
+        const [loadingModal, setLoadingModal] = useState(false);
+
+        const [editingTournament, setEditingTournament] = useState<ApiTournament | null>(null);
+        const [tournamentToDelete, setTournamentToDelete] = useState<ApiTournament | null>(null);
+        const [isDeleting, setIsDeleting] = useState(false);
+
         const [isEstate, setSelectE] = useState('Todos'); 
         const [isOpenE, setIsOpenE] = useState(false);
     
-            const handleSelectE = (id: number, label:string) => {
+        const handleSelectE = (id: number, label:string) => {
             setSelectE(label);
             setIsOpenE(false);
         };
@@ -111,61 +113,101 @@ export default function Table_Torneos() {
         ...(isEstate !== 'Todos' ? [{ id: 0, label: 'Todos' }] : []),
         ...filteredEstate,
         ];
-    
-        const [loading, setLoading] = useState(true);
-        const [error, setError] = useState<string | null>(null);
-        
-        //modal
-        const [isModalOpenT, setModalOpenT] = useState(false);
-        const [loadingModal, setLoadingModal] = useState(false);
-        const [tournaments, setTournaments] = useState<ApiTournament[]>([]);
-        
-        const [selectedEntry, setSelectedEntry] = useState<ApiList | null>(null);
-        const [selectedT, setSelectedT]=useState< ApiTournament|null>(null);
 
-        useEffect(() => {
-            async function fetchTournaments() {
-                setLoading(true);
-                setError(null);
-                    const API_URL = process.env.NEXT_PUBLIC_API_URL;
-                try {
-                    const response = await fetch(`${API_URL}/tournaments`);
-                    if (!response.ok) {
-                        throw new Error(`Error HTTP: ${response.statusText}`);
-                    }
-                    const jsonData = await response.json();
-                    setTournaments(jsonData.data);
-                } catch (e: any) {
-                    setError(e.message || "Error al cargar torneos");
-                } finally {
-                    setLoading(false);
-                }
+        const API_URL = process.env.NEXT_PUBLIC_API_URL;
+
+        const fetchTournaments = async () => {
+            setLoading(true);
+            setError(null);
+            try {
+                const response = await fetch(`${API_URL}/tournaments`);
+                if (!response.ok) throw new Error(`Error HTTP: ${response.statusText}`);
+                const jsonData = await response.json();
+                setTournaments(jsonData.data);
+            } catch (e: any) {
+                setError(e.message || "Error al cargar torneos");
+            } finally {
+                setLoading(false);
             }
+        };
+        
+        useEffect(() => {
             fetchTournaments();
         }, []);
-    
-        if (loading) return <p>Cargando torneos...</p>;
-        if (error) return <p>Error: {error}</p>;
-    
-        const API_URL = process.env.NEXT_PUBLIC_API_URL;
-            const handleClickT= async (entryT:ApiList)=>{
-                setSelectedEntry(entryT);
-                setLoadingModal(true);
-                setModalOpenT(true);
-                setSelectedT(null);
-    
-                try{
-                    const res = await fetch(`${API_URL}/tournaments/${entryT.id}`)
-                    if (!res.ok) throw new Error(`Error en API Torneos: ${res.statusText}`);
-                    const jsonData = await res.json();
-                    setSelectedT(jsonData.data); 
-    
-                }catch (e: any){
-                    console.error("Error al cargar detalles del torneo:", e);
-                }finally{
-                     setLoadingModal(false);
-                }
+
+        const handleOpenAddDiscipline = (tournament: ApiList) => {
+            setModalOpenT(false);
+            setIsAddDisciplineModalOpen(true);
+        };
+
+        const handleDisciplineCreated = () => {
+            fetchTournaments();
+        };
+
+        const handleClickT = async (entryT:ApiList) => {
+            setSelectedEntry(entryT);
+            setLoadingModal(true);
+            setModalOpenT(true);
+            setSelectedT(null);
+
+            try{
+                const res = await fetch(`${API_URL}/tournaments/${entryT.id}`)
+                if (!res.ok) throw new Error(`Error en API Torneos: ${res.statusText}`);
+                const jsonData = await res.json();
+                setSelectedT(jsonData.data); 
+
+            }catch (e: any){
+                console.error("Error al cargar detalles del torneo:", e);
+            }finally{
+                 setLoadingModal(false);
             }
+        }
+
+        const handleEditClick = async (tournamentList: ApiList) => {
+            console.log("Editando torneo:", tournamentList.nombre);
+            try {
+                const res = await fetch(`${API_URL}/tournaments/${tournamentList.id}`);
+                if (!res.ok) throw new Error("No se pudo cargar la info para editar");
+                const jsonData = await res.json();
+                setEditingTournament(jsonData.data);
+            } catch(e) {
+                alert('Error al cargar datos de edición');
+            }
+        };
+
+        const handleDeleteClick = (tournamentList: ApiList) => {
+             setTournamentToDelete(tournamentList as unknown as ApiTournament);
+        };
+
+        const handleConfirmDelete = async () => {
+            if (!tournamentToDelete) return;
+            setIsDeleting(true);
+            
+            try {
+                const res = await fetch(`${API_URL}/tournaments/${tournamentToDelete.id}`, {
+                    method: 'DELETE',
+                    headers: { 'Accept': 'application/json' }
+                });
+
+                if (!res.ok) {
+                    const errorData = await res.json();
+                    throw new Error(errorData.message || 'Error al eliminar');
+                }
+
+                alert('¡Torneo eliminado con éxito!');
+                setTournamentToDelete(null);
+                fetchTournaments();
+
+            } catch (e: any) {
+                alert(e.message);
+            } finally {
+                setIsDeleting(false);
+            }
+        };
+
+    
+        if (loading) return <p className="text-center p-4">Cargando torneos...</p>;
+        if (error) return <p className="text-center p-4 text-red-600">Error: {error}</p>;
 
   return (
          <div className="bg-white p-6 rounded-lg shadow">
@@ -187,7 +229,7 @@ export default function Table_Torneos() {
 
                     {tournaments.length > 0 ? (
                         <>
-                            <div className="Filtro flex flex-col sm:grid sm:grid-cols-2 lg:grid lg:grid-cols-2 xl:flex xl:flex-row  items-center mb-6 gap-3 shadow p-3 bg-gray-800/8 rounded-2xl">                 
+                            <div className="Filtro flex flex-col sm:grid sm:grid-cols-2 lg:grid lg:grid-cols-2 xl:flex xl:flex-row  items-center mb-6 gap-3 shadow p-3 bg-gray-800/8 rounded-2xl">                
                                     <div className="relative w-full flex col-span-2">
                                         <label htmlFor='buscar' className="h-full place-content-center absolute left-0 px-2 pl-3.5 cursor-pointer rounded-2xl">
                                             <Image
@@ -199,6 +241,7 @@ export default function Table_Torneos() {
                                             />
                                         </label>
                                         <Input type="text" id="buscar" className="bg-gray-50 focus:ring-[1px]  focus:ring-unimar focus:outline-none ring ring-gray-400 shadow-md rounded-2xl w-full pl-18 pr-3 py-3" placeholder="Buscar" required/>
+                                        
                                             <Button className="h-full items-center px-2 pr-4 absolute right-0 rounded-2xl cursor-pointer ">
                                                 <Image
                                                     className="size-4"
@@ -238,7 +281,7 @@ export default function Table_Torneos() {
                                 <TableBody className="bg-white divide-y divide-gray-200">
                                     {tournaments.map((tournament)=>(
                                         <React.Fragment key={tournament.id}>
-                                                <TableRow  className="hover:bg-gray-100 text-center"
+                                                <TableRow  className="hover:bg-gray-100 text-center cursor-pointer"
                                                     onClick={()=>(handleClickT(tournament))}
                                                 >
                                                     <TableCell className="font-bold">{tournament.nombre}</TableCell>
@@ -251,7 +294,6 @@ export default function Table_Torneos() {
                                                         tournament.estado === 'activo' ? 'bg-green-100 text-green-800' :
                                                         'bg-gray-100 text-gray-800'
                                                     }`}>
-                                                        {/* Capitaliza la primera letra */}
                                                         {tournament.estado.charAt(0).toUpperCase() + tournament.estado.slice(1)}
                                                     </p>
                                                 </TableCell>
@@ -260,12 +302,11 @@ export default function Table_Torneos() {
                                                             <div key={btn.id}
                                                                 onClick={(e) => {
                                                                 e.stopPropagation();
+                                                                if (btn.id === 2) handleEditClick(tournament);
+                                                                if (btn.id === 3) handleDeleteClick(tournament);
                                                                 }}
                                                             >
                                                                 <Button className={`btn rounded-lg cursor-pointer size-12 ${btn.id ===1? 'hover:bg-unimar/10' : (btn.id===2? 'hover:bg-gray-300/50': 'hover:bg-rose-300/50' )}`}
-                                                                    onClick={() => { 
-                                                                    
-                                                                    }}
                                                                 >
                                                                     <Image
                                                                         className='scale-110'
@@ -302,20 +343,35 @@ export default function Table_Torneos() {
                         />
                     )}
         
-                    {isAddModalOpen && (
-                        <Modal_addtorneos
-                            state={isAddModalOpen}
-                            onClose={() => setIsAddModalOpen(false)}    
-                            onTournamentCreated={refreshTournaments}
-                        />
-                    )}
-        
-                    {isAddDisciplineModalOpen && selectedEntry && ( // Asegúrate de que 'selectedEntry' no sea null
+                    {isAddDisciplineModalOpen && selectedEntry && ( 
                         <Modal_addDiscipline
                             state={isAddDisciplineModalOpen}
                             onClose={() => setIsAddDisciplineModalOpen(false)}
                             onSaveSuccess={handleDisciplineCreated}
                             tournamentId={selectedEntry.id} 
+                        />
+                    )}
+
+                    {(isAddModalOpen || editingTournament) && (
+                        <Modal_addtorneos
+                            state={isAddModalOpen || !!editingTournament}
+                            onClose={() => {
+                                setIsAddModalOpen(false);
+                                setEditingTournament(null);
+                            }}    
+                            onTournamentCreated={fetchTournaments}
+                            tournamentToEdit={editingTournament} 
+                        />
+                    )}
+
+                    {tournamentToDelete && (
+                        <ConfirmDeleteModal
+                            isOpen={!!tournamentToDelete}
+                            title="Eliminar Torneo"
+                            message={`¿Estás seguro de que quieres eliminar el torneo "${tournamentToDelete.nombre}"? Se borrarán todas sus disciplinas y datos asociados.`}
+                            onClose={() => setTournamentToDelete(null)}
+                            onConfirm={handleConfirmDelete}
+                            isLoading={isDeleting}
                         />
                     )}
                     

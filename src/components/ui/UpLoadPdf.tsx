@@ -8,7 +8,7 @@ interface PdfUploaderProps {
   onFileChange: (file: File | null) => void; 
   error?: string | null; 
   label?: string;
-  existingFileUrl?: string | null; // <-- Prop para el modo Edición
+  existingFileUrl?: string | null; 
 }
 
 export default function PdfUploader({ 
@@ -16,31 +16,23 @@ export default function PdfUploader({
   onFileChange, 
   error, 
   label = "Archivo PDF (requerido)",
-  existingFileUrl // <-- La recibimos aquí
+  existingFileUrl 
 }: PdfUploaderProps) {
   
   const [isDragging, setIsDragging] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // --- LÓGICA DE VISTA PREVIA MEJORADA ---
-
-  // 1. URL para un archivo NUEVO (local)
   const newFilePreviewUrl = file ? URL.createObjectURL(file) : null;
   
-  // 2. URL para un archivo EXISTENTE (del servidor)
-  // Construye la URL absoluta (como en tu Modal_VerReglamento)
   const fullExistingUrl = existingFileUrl 
     ? `${process.env.NEXT_PUBLIC_API_PDF || 'http://localhost:8000'}${existingFileUrl}` 
     : null;
 
-  // 3. Decide qué URL mostrar
   const displayUrl = newFilePreviewUrl || fullExistingUrl;
   
-  // 4. Decide qué nombre de archivo mostrar
   const fileName = file ? file.name : (existingFileUrl ? existingFileUrl.split('/').pop() : 'Archivo existente');
   const fileSize = file ? file.size : null;
 
-  // --- MANEJADORES ---
   const handleFileChange = (e: ChangeEvent<HTMLInputElement>) => {
     const selectedFile = e.target.files?.[0];
     validateAndSetFile(selectedFile || null);
@@ -98,7 +90,7 @@ export default function PdfUploader({
   
   return (
     <div className="flex flex-col">
-      <InputGroup label={label} For="pdfFile" labelClass="text-gray-500 text-start">
+      <InputGroup label={label} For="pdfFile" labelClass=" text-gray-700 text-lg  text-start">
         <Input
           ref={fileInputRef}
           className="hidden"
@@ -108,7 +100,6 @@ export default function PdfUploader({
           onChange={handleFileChange}
         />
         
-        {/* --- ESTADO 1 y 2: Mostrar Vista Previa (Nueva o Existente) --- */}
         {displayUrl ? (
           <div className={`
             relative space-y-1 flex flex-col items-center justify-between w-full h-auto p-4 rounded-lg border-2 
@@ -116,8 +107,8 @@ export default function PdfUploader({
           `}>
             <div className="flex w-full justify-between items-center px-2">
               <div className='text-left overflow-hidden flex flex-wrap items-center gap-x-5 gap-y-1'>
-                <p className='font-bold text-gray-800 truncate'>{fileName}</p>
-                {/* Muestra el tamaño solo si es un archivo NUEVO */}
+                <p className='font-bold text-gray-800 truncate '>{fileName}</p>
+                
                 {fileSize && (
                   <p className='text-sm text-gray-600'>
                     {(fileSize / (1024 * 1024)) > 1 ? 
@@ -126,7 +117,6 @@ export default function PdfUploader({
                     }
                   </p>
                 )}
-                {/* Muestra un enlace si es un archivo EXISTENTE */}
                 {!file && fullExistingUrl && (
                   <a href={fullExistingUrl} target="_blank" rel="noopener noreferrer" className="text-sm text-blue-700 hover:underline">
                     (Ver archivo actual)
@@ -134,7 +124,6 @@ export default function PdfUploader({
                 )}
               </div>
               
-              {/* El botón 'X' solo aparece si es un archivo NUEVO */}
               {file ? (
                 <button
                   type="button"
@@ -145,17 +134,15 @@ export default function PdfUploader({
                   &#10005; 
                 </button>
               ) : (
-                // En modo edición, mostramos un botón para "Reemplazar"
                 <label htmlFor="pdfFile" className="text-sm text-unimar font-bold cursor-pointer hover:underline flex-shrink-0">
                   Reemplazar
                 </label>
               )}
             </div>
 
-            {/* Vista previa del Iframe */}
             <div className="w-full h-80 border border-gray-300 rounded-md overflow-hidden">
               <iframe
-                src={displayUrl} // <-- Usa la URL decidida (nueva o existente)
+                src={displayUrl} 
                 className="w-full h-full border-0"
                 title="Vista previa del PDF"
               >
@@ -166,7 +153,6 @@ export default function PdfUploader({
 
         ) : (
           
-          /* --- ESTADO 3: Dropzone (No hay archivo nuevo NI existente) --- */
           <label
             htmlFor="pdfFile"
             onDragOver={handleDragOver}

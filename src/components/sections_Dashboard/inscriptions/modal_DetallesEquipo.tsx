@@ -8,6 +8,7 @@ import {
   ContainModal,
   HeaderModal
  } from '@/types/ui_components'
+ import Image from 'next/image'
 
 interface ApiUser {
   id: number;
@@ -15,6 +16,9 @@ interface ApiUser {
   email: string | null;
   cedula: string | null;
   telefono: string | null;
+  pivot?: {
+    dorsal: string | null;
+  };
 }
 
 const titles = [
@@ -56,6 +60,7 @@ export default function modal_DetallesEquipo({ entryData, teamData, isLoading, o
     if (!entryData) return null;
 
     const esIndividual = !!entryData.user_id_for_modal;
+    const API_URL = process.env.NEXT_PUBLIC_API_URL?.replace('/api', '') || 'http://localhost:8000';
 
     return (
         <Modal state={state}>
@@ -83,12 +88,48 @@ export default function modal_DetallesEquipo({ entryData, teamData, isLoading, o
                             </div>
                         ) : teamData ? (
                             // Caso Equipo
-                            <div>
+                            <div className='items-center flex flex-col'>
                                 <h3>Detalles del Equipo</h3>
+                                    <div className="relative w-full h-48 lg:h-58 rounded-lg overflow-hidden">
+                                        <Image
+                                        src={`${API_URL}${teamData.logo}`}
+                                        alt={teamData.nombre}
+                                        layout="fill"
+                                        objectFit="cover"
+                                        className="bg-gray-200"
+                                        />
+                                    </div>                                
+                                   <div className="flex justify-center my-4">
+                                    <a 
+                                        href={`${API_URL}${teamData.logo}`} 
+                                        download={`logo_${teamData.nombre.replace(/\s+/g, '_')}`} 
+                                        target="_blank" 
+                                        rel="noopener noreferrer"
+                                        className="group relative size-64 bg-gray-100 rounded-full overflow-hidden border-4 border-unimar/25 shadow-lg cursor-pointer block"
+                                    >
+                                        <Image 
+                                            src={teamData.logo ? `${API_URL}${teamData.logo}` : '/persona.png'}
+                                            alt="Logo Equipo" 
+                                            fill
+                                            className="object-cover"
+                                        />
+                                        <div className='absolute inset-0 flex justify-center items-center bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-10'>
+                                            <Image 
+                                                className='scale-110 grayscale invert' 
+                                                src={'/bandeja-de-descarga.png'} 
+                                                alt={'descargar'} 
+                                                width={25} 
+                                                height={25} 
+                                            />
+                                        </div>
+                                    </a>
+                                </div>
                                 <p><strong>Nombre:</strong> {teamData.nombre}</p>
                                 <p><strong>Capitán:</strong> {teamData.captain?.nombre || 'No asignado'}</p>
                                 <p><strong>Color:</strong> {teamData.color}</p>
-                                <p><strong>Imagen</strong>{teamData.logo}</p>                                
+                                <div>
+                                </div>
+                                <hr />
                                 <h4>Integrantes ({teamData.integrantes_total}):</h4>
                                 <ul>
                                      <Table>
@@ -103,7 +144,7 @@ export default function modal_DetallesEquipo({ entryData, teamData, isLoading, o
                                         <TableBody className="bg-gray-100 divide-y divide-gray-200">
                                             {teamData.integrantes_data.map(member => (
                                                 <TableRow key={member.id}>
-                                                    <TableCell>{member.id}</TableCell>
+                                                    <TableCell>{member.pivot?.dorsal || 'N/A'}</TableCell>
                                                     <TableCell>{member.nombre} </TableCell>
                                                     <TableCell>{member.cedula} </TableCell>
                                                     <TableCell>{member.email} </TableCell>

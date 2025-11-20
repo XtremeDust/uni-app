@@ -155,7 +155,7 @@ export default function modal_Addsport({state,onClose,onSportCreated, sportToEdi
 
    if (isEditMode) {
         endpoint = `${API_URL}/sports/${sportToEdit!.id}`;
-        data.append('_method', 'PUT'); // Laravel usa esto para "tunelizar"
+        data.append('_method', 'PUT');
     }
 
     try {

@@ -522,7 +522,7 @@ const [isSept, setStep] = useState(1);
                                         </Button>
                                         
 
-                                        <div className={`absolute z-20 bg-white shadow-lg mt-1.5 rounded-xl overflow-hidden overflow-y-auto ${OpenDep ? 'w-full h-[7.5rem]' : 'max-h-0 opacity-0 pointer-events-none'}`}>
+                                        <div className={`absolute z-20 bg-white shadow-lg mt-1 rounded-xl overflow-hidden overflow-y-auto ${uniqueSports.length < 2 ? OpenDep ? 'w-full h-auto' : 'max-h-0 opacity-0 pointer-events-none':OpenDep ? 'w-full h-[6.75rem]' : 'max-h-0 opacity-0 pointer-events-none'}`}>
                                         {uniqueSports.map((sportName) => (
                                             <div 
                                                 key={sportName} 

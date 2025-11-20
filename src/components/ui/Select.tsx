@@ -17,12 +17,14 @@ export interface SelectProps {
     onSelect: ( id: number, label: string) => void; 
     placeholder: string;
     className?:string;
+    classNameJr?:string;
+    disabled?:boolean;
 }
 
 
 
 
-export function Select({options,currentValue,className,isOpen,setOpen,onSelect,placeholder,...props}: SelectProps){
+export function Select({options,currentValue,className,isOpen,setOpen,onSelect, disabled,classNameJr,placeholder,...props}: SelectProps){
 
   const menuOut = useRef<HTMLDivElement>(null); 
 
@@ -34,6 +36,7 @@ export function Select({options,currentValue,className,isOpen,setOpen,onSelect,p
         <div className="relative"  ref={menuOut} onClick={toggleDropdown} {...props}>
 
             <Input 
+                disabled={disabled}
                 type='text'id={'custom-select'}
                 className={`${className}`} 
                 required 
@@ -59,7 +62,7 @@ export function Select({options,currentValue,className,isOpen,setOpen,onSelect,p
                         {options.map((option) => (
                         <div 
                             key={option.id} 
-                            className="w-full flex gap-2 p-2 hover:bg-unimar/15 place-items-center cursor-pointer" 
+                            className={`w-full flex gap-2 p-2 hover:bg-unimar/15 place-items-center cursor-pointer ${classNameJr}`} 
                             onClick={(e) => {
                             e.stopPropagation(); 
                             onSelect(option.id, option.label);

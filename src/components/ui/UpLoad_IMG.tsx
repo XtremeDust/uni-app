@@ -70,7 +70,7 @@ export default function UploadIMG({ file, onFileChange, error, previewUrl: exist
   return (
     <div className="flex flex-col p-3">
       <div className="text-start">
-        <h3 className="text-[1.3rem] font-bold ml-3 pb-2">{label}</h3>
+        <h3 className="font-bold pb-2 text-lg text-gray-700">{label}</h3>
       </div>
 
       <Input

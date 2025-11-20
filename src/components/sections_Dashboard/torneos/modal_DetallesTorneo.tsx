@@ -40,7 +40,7 @@ interface Creador {
     estado: 'proximo'|'activo' | 'finalizado';
     inicio:string;
     fin:string;
-  total_disiplinas: string; 
+    total_disiplinas: string; 
   }
 
 interface ApiTournament {
@@ -54,6 +54,7 @@ interface ApiTournament {
   fin: string;
   disciplinas:ApiDiscipline[];
   reglamentos_torneo:ApiRegulation[];
+  img?:string;
 }
 
 interface ApiDiscipline{
@@ -118,14 +119,26 @@ export default function modal_DetallesTorneo({state, isLoading, entryData, Depor
         }
     };
     
+     const API_URL = process.env.NEXT_PUBLIC_API_URL?.replace('/api', '') || 'http://localhost:8000';
+
     return(
         <Modal state={state}>
-            <ContainModal className='bg-white text-black'>
+            <ContainModal className='bg-white w-[95%] md:w-[80%] lg:w-[80%] xl:w-[40%] rounded-2xl grid grid-rows-[auto_minmax(0,1fr)]'>
                 <HeaderModal onClose={onClose}>
                      <h3 className="text-xl font-bold mb-2">Detalles del Torneo</h3>
                 </HeaderModal>
                 <div >
-                    
+                     <div className="flex-shrink-0 w-full  justify-center place-content-center items-center">
+                        <div className="relative w-full h-64 lg:h-68 rounded-lg overflow-hidden shadow-lg ">
+                        <Image
+                            src={DeporteData?.img ? `${API_URL}${DeporteData.img}` : '/logounimar-25-aniversario.png'}
+                            alt={'banner'}
+                            layout="fill"
+                            objectFit="cover"
+                            className="bg-gray-200"
+                        />
+                        </div>
+                    </div>
                     <p><strong>Nombre del Torneo:</strong> {entryData?.nombre}</p>
                     <p><strong>Estado del Torneo:</strong> {entryData?.estado}</p>
                     <hr />
@@ -148,7 +161,7 @@ export default function modal_DetallesTorneo({state, isLoading, entryData, Depor
                                         {DeporteData.reglamentos_torneo.map(reg => (
                                             <li key={reg.id}>
                                                 <a 
-                                                    href={reg.url_archivo} // Asume que el Resource envía la URL
+                                                    href={reg.url_archivo}
                                                     target="_blank" 
                                                     rel="noopener noreferrer"
                                                     className="text-blue-600 hover:underline"
@@ -204,14 +217,14 @@ export default function modal_DetallesTorneo({state, isLoading, entryData, Depor
                                             </div>
 
                                             {selectedDisciplineId === discipline.id && (
-                                                <div className='mt-[2.5px]'>
+                                                <div className='mt-[0.5px] px-2'>
                                                     {loadingGames ? (
                                                         <p>Cargando partidos...</p>
                                                     ) : games.length > 0 ? (
-                                                        <Table className='my-1'>
+                                                        <Table className='my-1  w-full'>
                                                             <TableHead >
                                                                 {tituloPartidos.map((titulo)=>(
-                                                                    <TableCell key={titulo.id} className="text-white  bg-unimar first:rounded-l-lg last:rounded-r-lg p-4 justify-end font-semibold" >{titulo.titulo}</TableCell>
+                                                                    <TableCell key={titulo.id} className="text-white  bg-unimar first:rounded-l-lg last:rounded-r-lg p-2 justify-end font-semibold" >{titulo.titulo}</TableCell>
                                                                 ))}
                                                             
                                                                 

@@ -4,7 +4,7 @@ import { Button } from '@/types/ui_components';
 import Modal_AddSport from '../sports/modal_Addsport';
 import Modal_addTorneos from '../torneos/modal_AddTorneos';
 import Modal_addDiscipline from '../torneos/modal_Adddisciplinas';
-import Modal_addTeams from '../inscriptions/team_modal';
+import Modal_addTeams from '../inscriptions/modal_AddTeam';
 import Modal_addRegulation from '../regulations/Modal_addRegulation';
 
 

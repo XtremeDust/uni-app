@@ -275,7 +275,7 @@ export default function Modal_addRegulation({
         ) : (
           <div className="p-6 space-y-4">
             
-            <InputGroup label="Título del Reglamento" For="title" labelClass="text-gray-500 text-start">
+            <InputGroup label="Título del Reglamento" For="title" labelClass="text-gray-700 text-lg text-start">
               <Input
                 id="title"
                 name="title"
@@ -290,7 +290,7 @@ export default function Modal_addRegulation({
 
             <div className="grid grid-cols-1 gap-4">
               {!assignType ? (
-                <InputGroup label="Alcance (Scope)" For="scope" labelClass="text-gray-500 text-start">
+                <InputGroup label="Alcance (Scope)" For="scope" labelClass="text-gray-700 text-lg text-start">
                   <Select
                     className="bg-gray-50 focus:ring-[1px] focus:ring-unimar focus:outline-none ring ring-gray-400 shadow-md rounded-lg w-full pl-6 pr-3 py-2"
                     options={scopeOptions}
@@ -306,7 +306,7 @@ export default function Modal_addRegulation({
                   {errors.scope && <p className="text-red-500 ...">{errors.scope}</p>}
                 </InputGroup>
               ) : (
-                <InputGroup label={`Asignar a ${label}`} For="item" labelClass="text-gray-500 text-start">
+                <InputGroup label={`Asignar a ${label}`} For="item" labelClass="text-gray-700 text-lg text-start">
                   <Select
                     className="bg-gray-50 focus:ring-[1px] focus:ring-unimar focus:outline-none ring ring-gray-400 shadow-md rounded-lg w-full pl-6 pr-3 py-2"
                     options={items}

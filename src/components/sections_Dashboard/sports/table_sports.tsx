@@ -30,7 +30,7 @@ export interface ApiSportList {
 }
 
 const buttons = [
-    {id:1, button:"Desacargar", img:"/bandeja-de-descarga.png"},
+    //{id:1, button:"Desacargar", img:"/bandeja-de-descarga.png"},
     {id:2, button:"Editar", img:"/lapiz (1).png"},
     {id:3, button:"Eliminar", img:"/basura (1).png"}
 ]
@@ -243,7 +243,7 @@ export default function Table_Sports() {
                                 <TableCell className="font-bold">{data.nombre}</TableCell>
                                 <TableCell>{data.tipo}</TableCell>
                                 <TableCell>{data.descripcion}</TableCell>
-                                <TableCell className="space-x-2 flex justify-evenly text-white">
+                                <TableCell className="space-x-2 flex justify-center gap-5 text-white">
                                     {buttons.map((btn) => (
                                         <div 
                                             key={btn.id}
@@ -293,10 +293,10 @@ export default function Table_Sports() {
       
         {editingSport && (
             <Modal_AddSport
-                state={!!editingSport} // El modal está abierto si 'editingSport' no es null
+                state={!!editingSport} 
                 onClose={handleCloseEdit}
                 onSportCreated={handleRefresh}
-                sportToEdit={editingSport} // <-- ¡Le pasamos el deporte a editar!
+                sportToEdit={editingSport}
             />
         )}
 

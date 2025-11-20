@@ -39,11 +39,11 @@ export default function Modal_DetallesDeporte({ sportData, isLoading, state, onC
     }
 
     return (
-      <div className="flex flex-col md:flex-row gap-6 p-6">
-        <div className="flex-shrink-0 w-full md:w-1/3">
-          <div className="relative w-full h-48 md:h-full rounded-lg overflow-hidden shadow-lg">
+      <div className="flex flex-col  gap-6 p-6">
+        <div className="flex-shrink-0 w-full  justify-center place-content-center items-center">
+          <div className="relative w-full h-48 lg:h-58 rounded-lg overflow-hidden shadow-lg ">
             <Image
-              src={`${API_URL}${sportData.logo_url}`}
+              src={sportData.logo_url ? `${API_URL}${sportData.logo_url}` : '/logounimar-25-aniversario.png'}
               alt={sportData.nombre}
               layout="fill"
               objectFit="cover"
@@ -52,8 +52,10 @@ export default function Modal_DetallesDeporte({ sportData, isLoading, state, onC
           </div>
         </div>
         <div className="flex-grow">
-          <h3 className="text-2xl font-bold text-gray-800 mb-4">{sportData.nombre}</h3>
-          <p className="text-lg text-unimar mb-4 font-semibold">{sportData.tipo}</p> 
+          <div className='flex items-center gap-5 justify-center xl:justify-start'>
+              <h3 className="text-2xl font-bold text-gray-800 mb-4">{sportData.nombre}</h3>
+              <p className="text-xl text-unimar mb-4 font-semibold">({sportData.tipo})</p> 
+          </div>
           <div className="space-y-4">
             <div>
               <h4 className="font-bold text-gray-700">Descripción</h4>
@@ -63,7 +65,7 @@ export default function Modal_DetallesDeporte({ sportData, isLoading, state, onC
                 <h4 className="font-bold text-gray-700">Equipamiento Necesario</h4>               
                 <div className="flex flex-wrap gap-2 p-2 rounded-lg justify-center">
                 {sportData.equipamiento && (
-                    <div className="flex flex-wrap gap-2 pt-2">
+                    <div className="flex flex-wrap gap-2 pt-2 justify-center">
                         {sportData.equipamiento.split(',')
                             .map(tag => tag.trim())
                             .filter(tag => tag)
@@ -84,7 +86,7 @@ export default function Modal_DetallesDeporte({ sportData, isLoading, state, onC
 
   return (
     <Modal state={state}>
-      <ContainModal className="bg-white w-[95%] md:w-[70%] lg:w-[50%] max-h-[80vh] rounded-2xl grid grid-rows-[auto_minmax(0,1fr)]">
+      <ContainModal className="bg-white w-[95%] md:w-[70%] lg:w-[80%] xl:w-[40%] max-h-[80vh] rounded-2xl grid grid-rows-[auto_minmax(0,1fr)]">
         <HeaderModal className="flex-none" onClose={onClose}>
           <div className="text-start">
             <h2 className="ml-5 title">Detalles del Deporte</h2>
