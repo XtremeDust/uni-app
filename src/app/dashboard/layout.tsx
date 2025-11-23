@@ -6,6 +6,7 @@ import AsideMobile from "@/components/common/dashboard/dashSideBarMobile";
 import Footer from "@/components/common/dashboard/dashFooter";
 import ContentRenderer from "@/components/common/dashboard/contentR";
 import { useRouter, useSearchParams } from 'next/navigation';
+import Auth from '@/components/common/Auth';
 
 
 function NavigationLogic() {
@@ -29,26 +30,28 @@ function NavigationLogic() {
     const isExpanded = isToggle || isHovered;
     
     return (
-        <React.Fragment>
-    
-            <Header CurrentKey={currentView} onToggle={handleToggle} className="shadow-sm h-16 bg-unimar w-full flex lg:col-start-2 col-span-full" />
-    
-            <Aside 
-                onNavigate={handleChange} 
-                CurrentKey={currentView}
-                isExpanded={isExpanded} 
-                handleMouseEnter={handleMouseEnter}
-                handleMouseLeave={handleMouseLeave}
-            />
+        <Auth>
+            <React.Fragment>
+        
+                <Header CurrentKey={currentView} onToggle={handleToggle} className="shadow-sm h-16 bg-unimar w-full flex lg:col-start-2 col-span-full" />
+        
+                <Aside 
+                    onNavigate={handleChange} 
+                    CurrentKey={currentView}
+                    isExpanded={isExpanded} 
+                    handleMouseEnter={handleMouseEnter}
+                    handleMouseLeave={handleMouseLeave}
+                />
 
-            <main className="p-6 md:p-8 bg-gray-100 col-span-full lg:col-auto overflow-y-auto">
-                <ContentRenderer currentKey={currentView} />
-            </main>
+                <main className="p-6 md:p-8 bg-gray-100 col-span-full lg:col-auto overflow-y-auto">
+                    <ContentRenderer currentKey={currentView} />
+                </main>
 
-            <nav className="fixed bottom-0 left-0 right-0 h-16 bg-white shadow-2xl z-40 lg:hidden">
-                <AsideMobile onNavigate={handleChange} CurrentKey={currentView} />
-            </nav>
-        </React.Fragment>
+                <nav className="fixed bottom-0 left-0 right-0 h-16 bg-white shadow-2xl z-40 lg:hidden">
+                    <AsideMobile onNavigate={handleChange} CurrentKey={currentView} />
+                </nav>
+            </React.Fragment>
+        </Auth>
     );
 }
 

@@ -58,7 +58,7 @@ export default function Table_Games() {
 
     const refreshGames = () => {
             console.log("¡Refrescando lista de torneos!");
-            // fetchGames(); // (Descomenta esto si tienes la función)
+            // fetchGames(); 
     };
     
     const est = [{id:1,label:'Activo'},{id:2,label:'Próximo'},{id:3,label:'Finalizado'},];

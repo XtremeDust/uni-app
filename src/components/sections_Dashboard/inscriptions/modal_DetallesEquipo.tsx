@@ -90,15 +90,7 @@ export default function modal_DetallesEquipo({ entryData, teamData, isLoading, o
                             // Caso Equipo
                             <div className='items-center flex flex-col'>
                                 <h3>Detalles del Equipo</h3>
-                                    <div className="relative w-full h-48 lg:h-58 rounded-lg overflow-hidden">
-                                        <Image
-                                        src={`${API_URL}${teamData.logo}`}
-                                        alt={teamData.nombre}
-                                        layout="fill"
-                                        objectFit="cover"
-                                        className="bg-gray-200"
-                                        />
-                                    </div>                                
+                                                                   
                                    <div className="flex justify-center my-4">
                                     <a 
                                         href={`${API_URL}${teamData.logo}`} 

@@ -11,6 +11,7 @@ interface ModalProps {
   onClose: () => void;
   onSaveSuccess: () => void;
   tournamentId: number; 
+  DisciplinesData:{nombre_deporte:string, categoria:string}[];
 }
 
 interface ISelectItem {
@@ -35,7 +36,7 @@ const categories = [
   { id: 3, label: "mixta" },
 ];
 
-export default function Modal_addDiscipline({ state, onClose, onSaveSuccess, tournamentId }: ModalProps) {
+export default function Modal_addDiscipline({ state, onClose, onSaveSuccess,DisciplinesData, tournamentId }: ModalProps) {
   
   const [loading, setLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
@@ -115,12 +116,12 @@ export default function Modal_addDiscipline({ state, onClose, onSaveSuccess, tou
       if (sport.defaultMode) {
           setGameMode(sport.defaultMode);
           
-          if (sport.defaultMode === 'individual') {
+          if (sport.defaultMode === 'Individual') {
               setMin(1); setMax(1);
-          } else if (sport.defaultMode === 'duplas') {
+          } else if (sport.defaultMode === 'En duplas') {
               setMin(2); setMax(2);
           } else {
-              setMin(5); setMax(15);
+              setMin(3); setMax(15);
           }
       } else {
           setGameMode("No definido");
@@ -152,8 +153,17 @@ export default function Modal_addDiscipline({ state, onClose, onSaveSuccess, tou
         d => d.sportId === sportId && d.category === category
     );
 
-    if (isDuplicate) {
-        alert("Ya agregaste esta combinación.");
+    const isAlreadyInTournament = DisciplinesData.some(
+        d => d.nombre_deporte === sportLabel && d.categoria === category
+    );
+
+  if (isDuplicate) {
+    alert("Ya agregaste esta combinación a la lista actual.");
+    return;
+  }
+
+    if (isAlreadyInTournament) {
+        alert(`El torneo ya tiene la disciplina ${sportLabel} (${category}).`);
         return;
     }
 
@@ -186,7 +196,7 @@ export default function Modal_addDiscipline({ state, onClose, onSaveSuccess, tou
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
                 body: JSON.stringify({
-                    event_id: tournamentId,
+                    tournament_id: tournamentId,
                     sport_id: d.sportId,
                     category: d.category,
                     game_mode: d.gameMode,
@@ -216,7 +226,7 @@ export default function Modal_addDiscipline({ state, onClose, onSaveSuccess, tou
 
   return (
     <Modal state={state}>
-      <ContainModal className="w-[95%] md:w-[90%] lg:w-[80%] bg-white text-black max-h-[90vh] flex flex-col">
+      <ContainModal className="w-[95%] md:w-[90%] lg:w-[80%] bg-gray-200 shadow-xl text-black max-h-[90vh] flex flex-col">
         <HeaderModal onClose={onClose} className="flex-none">
           <h2 className="text-xl font-bold text-gray-800">
             Añadir Disciplinas
@@ -231,22 +241,21 @@ export default function Modal_addDiscipline({ state, onClose, onSaveSuccess, tou
                 <div className="text-center p-10 text-red-500">{error}</div>
             ) : (
                 <>
-                    <div className="bg-gray-50 p-4 rounded-xl border border-gray-200 space-y-4">
-                        
-
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="bg-gray-100 p-4 rounded-xl border border-gray-200 space-y-4">
+                    
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 ">
                           <InputGroup label="Deporte" For="sport" labelClass="text-gray-700 text-start">
                               <div className="relative" ref={menuDep} onClick={() => setMDep(!OpenDep)}>
                                   <Input 
                                       type='text' id="sport" 
-                                      className="cursor-pointer input w-full pl-3 py-2 bg-white placeholder:text-black" 
+                                      className="cursor-pointer input w-full pl-3 py-2 placeholder:text-black" 
                                       required readOnly 
                                       value={sportLabel ?? "Seleccione Deporte"}
                                   />
                                   <Button type="button" className="cursor-pointer absolute right-2 top-1/2 flex justify-center -translate-y-1/2">
                                       <Image className={`size-[1rem] transition-transform duration-300 ease-in-out ${OpenDep ? 'rotate-180' : 'rotate-0'}`} src={'https://res.cloudinary.com/dnfvfft3w/image/upload/v1759101273/flecha-hacia-abajo-para-navegar_zixe1b.png'} alt="v" width={16} height={16} />
                                   </Button>
-                                  <div className={`absolute z-20 bg-white shadow-lg mt-1 rounded-xl overflow-hidden overflow-y-auto border border-gray-100 w-full left-0 ${OpenDep ? 'max-h-60 opacity-100' : 'max-h-0 opacity-0 pointer-events-none'}`}>
+                                  <div className={`absolute z-20 bg-white shadow-lg mt-1 rounded-xl overflow-hidden overflow-y-auto border border-gray-100 w-full left-0 ${OpenDep ? 'max-h-30 opacity-100' : 'max-h-0 opacity-0 pointer-events-none'}`}>
                                       {sports.map((s) => (
                                           <div key={s.id} className="w-full flex gap-2 p-2.5 hover:bg-unimar/15 place-items-center cursor-pointer" onClick={() => handleSelectSport(s)}>
                                               <span className="ml-2 text-sm">{s.label}</span>
@@ -260,7 +269,7 @@ export default function Modal_addDiscipline({ state, onClose, onSaveSuccess, tou
                                 <div className="relative" ref={menuCat} onClick={() => sportId && setMCat(!OpenCat)}>
                                     <Input 
                                         type='text' id="category" 
-                                        className={`cursor-pointer input w-full pl-3 py-2 bg-white placeholder:text-black ${!sportId ? 'opacity-50 cursor-not-allowed' : ''}`}
+                                        className={`cursor-pointer input w-full pl-3 py-2  placeholder:text-black ${!sportId ? 'opacity-50 cursor-not-allowed' : ''}`}
                                         required readOnly 
                                         value={category ?? "Seleccione"}
                                         disabled={!sportId}
@@ -268,19 +277,32 @@ export default function Modal_addDiscipline({ state, onClose, onSaveSuccess, tou
                                     <Button type="button" className="cursor-pointer absolute right-2 top-1/2 flex justify-center -translate-y-1/2">
                                         <Image className={`size-[1rem] transition-transform duration-300 ease-in-out ${OpenCat ? 'rotate-180' : 'rotate-0'}`} src={'https://res.cloudinary.com/dnfvfft3w/image/upload/v1759101273/flecha-hacia-abajo-para-navegar_zixe1b.png'} alt="v" width={16} height={16} />
                                     </Button>
-                                    <div className={`absolute z-20 bg-white shadow-lg mt-1 rounded-xl overflow-hidden overflow-y-auto border border-gray-100 w-full left-0 ${OpenCat ? 'max-h-60 opacity-100' : 'max-h-0 opacity-0 pointer-events-none'}`}>
-                                        {categories.map((c) => (
-                                            <div key={c.id} className="w-full flex gap-2 p-2.5 hover:bg-unimar/15 place-items-center cursor-pointer" onClick={() => handleSelectCategory(c.label)}>
-                                                <span className="ml-2 text-sm capitalize">{c.label}</span>
-                                            </div>
-                                        ))}
+                                    <div className={`absolute z-20 bg-white shadow-lg mt-1 rounded-xl overflow-hidden overflow-y-auto border border-gray-100 w-full left-0 ${OpenCat ? 'max-h-31 opacity-100' : 'max-h-0 opacity-0 pointer-events-none'}`}>
+                                        {categories.map((c) => {
+                                            const isDisabled = DisciplinesData.some(
+                                                d => d.nombre_deporte === sportLabel && d.categoria === c.label
+                                            ) || disciplinesList.some(
+                                                d => d.sportId === sportId && d.category === c.label
+                                            );
+
+                                            return (
+                                                <div 
+                                                    key={c.id} 
+                                                    className={`w-full flex gap-2 p-2.5 place-items-center cursor-pointer ${isDisabled ? 'opacity-50 cursor-not-allowed' : 'hover:bg-unimar/15'}`}
+                                                    onClick={() => !isDisabled && handleSelectCategory(c.label)}
+                                                >
+                                                    <span className="ml-2 text-sm capitalize">
+                                                        {c.label} {isDisabled && "(Ya existe)"}
+                                                    </span>
+                                                </div>
+                                            );
+                                        })}
                                     </div>
                                 </div>
                             </InputGroup>
                         </div>
 
-
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 ">
                           <InputGroup label="Modo de Juego" For="gameMode" labelClass="text-gray-700 text-start">
                                 <Input 
                                     type='text' 
@@ -295,7 +317,7 @@ export default function Modal_addDiscipline({ state, onClose, onSaveSuccess, tou
                             <InputGroup label="Min. Participantes" For="min" labelClass="text-gray-700 text-start">
                                 <Input 
                                     id="min" type="number" min="1" 
-                                    className={`input w-full bg-white ${!gameMode ? 'opacity-50 cursor-not-allowed' : ''}`}
+                                    className={`input w-full py-2  ${!gameMode ? 'opacity-50 cursor-not-allowed' : ''}`}
                                     value={min} onChange={(e) => handleMinChange(Number(e.target.value))}
                                     disabled={!gameMode}
                                 />
@@ -304,7 +326,7 @@ export default function Modal_addDiscipline({ state, onClose, onSaveSuccess, tou
                             <InputGroup label="Max. Participantes" For="max" labelClass="text-gray-700 text-start">
                                 <Input 
                                     id="max" type="number" min="1"
-                                    className={`input w-full bg-white ${!gameMode ? 'opacity-50 cursor-not-allowed' : ''}`}
+                                    className={`input w-full py-2  ${!gameMode ? 'opacity-50 cursor-not-allowed' : ''}`}
                                     value={max} onChange={(e) => handleMaxChange(Number(e.target.value))}
                                     disabled={!gameMode}
                                 />
@@ -328,10 +350,10 @@ export default function Modal_addDiscipline({ state, onClose, onSaveSuccess, tou
                     </div>
 
                     {disciplinesList.length > 0 && (
-                        <div className="border rounded-xl overflow-hidden shadow-sm bg-white">
+                        <div className="border border-blue-600 rounded-xl overflow-hidden shadow-sm bg-white">
                             <Table className="w-full">
-                                <TableHead className="bg-unimar border-b border-gray-400">
-                                    <TableHeaderCell className="p-3 text-left font-bold text-gray-100 w-1/4">Deporte</TableHeaderCell>
+                                <TableHead className="bg-unimar border-b border-blue-600">
+                                    <TableHeaderCell className="p-3 text-center font-bold text-gray-100 w-1/4">Deporte</TableHeaderCell>
                                     <TableHeaderCell className="p-3 text-center font-bold text-gray-100 w-1/5">Categoría</TableHeaderCell>
                                     <TableHeaderCell className="p-3 text-center font-bold text-gray-100 w-1/5">Modo</TableHeaderCell>
                                     <TableHeaderCell className="p-3 text-center font-bold text-gray-100 w-1/6">Cupos</TableHeaderCell>

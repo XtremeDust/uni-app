@@ -83,8 +83,6 @@ export default function Table_Ractivity() {
     fetchActivityRegs();
   }, []);
 
-  // --- FUNCIONES DE EDICIÓN Y ELIMINACIÓN ---
-
   const handleEditClick = (reg: ApiActivityRegulation) => {
     console.log("Abriendo modal para editar:", reg);
     setEditingReg(reg);
@@ -100,7 +98,7 @@ export default function Table_Ractivity() {
     setIsDeleting(true);
     const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api';
     try {
-      const res = await fetch(`${API_URL}/regulations/${regToDelete.reglamento.id}`, {
+      const res = await fetch(`${API_URL}/activity-regulations/${regToDelete.id}`, {
         method: 'DELETE',
         headers: { 'Accept': 'application/json' }
       });
@@ -118,6 +116,8 @@ export default function Table_Ractivity() {
       setIsDeleting(false);
     }
   };
+
+  
 
   if (loading) return <p className="text-center p-4">Cargando reglas de actividad...</p>;
   if (error) return <p className="text-center p-4 text-red-600">Error: {error}</p>;
@@ -236,7 +236,6 @@ export default function Table_Ractivity() {
         />
       )}
 
-      {/* --- MODAL CREAR/EDITAR --- */}
       {(isModalOpen || editingReg) && (
         <ModalAsignarRegla
           state={isModalOpen || !!editingReg}
@@ -244,13 +243,12 @@ export default function Table_Ractivity() {
             setIsModalOpen(false);
             setEditingReg(null);
           }}
-          assignType="activity" // <-- Importante: "activity"
+          assignType="activity"
           onSaveSuccess={fetchActivityRegs}
-          regulationToEdit={editingReg} // <-- Pasa el dato a editar
+          regulationToEdit={editingReg} 
         />
       )}
 
-      {/* --- MODAL ELIMINAR --- */}
       {regToDelete && (
         <ConfirmDeleteModal
           isOpen={!!regToDelete}

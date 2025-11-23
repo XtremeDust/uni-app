@@ -136,6 +136,7 @@ export default function Table_Torneos() {
         }, []);
 
         const handleOpenAddDiscipline = (tournament: ApiList) => {
+            
             setModalOpenT(false);
             setIsAddDisciplineModalOpen(true);
         };
@@ -332,10 +333,12 @@ export default function Table_Torneos() {
                         </div>
                     )}
 
-                    {isModalOpenT &&(
+                    {isModalOpenT && selectedEntry &&(
                         <DetallesTorneo
                             entryData={selectedEntry}
+                            tournamentId={selectedEntry.id}
                             DeporteData={selectedT}
+                            DisciplinesData={selectedT?.disciplinas || []}
                             isLoading={loadingModal}
                             state={isModalOpenT===true ? true:false}
                             onClose={() => setModalOpenT(false)}
@@ -346,6 +349,7 @@ export default function Table_Torneos() {
                     {isAddDisciplineModalOpen && selectedEntry && ( 
                         <Modal_addDiscipline
                             state={isAddDisciplineModalOpen}
+                            DisciplinesData={selectedT?.disciplinas || []}
                             onClose={() => setIsAddDisciplineModalOpen(false)}
                             onSaveSuccess={handleDisciplineCreated}
                             tournamentId={selectedEntry.id} 

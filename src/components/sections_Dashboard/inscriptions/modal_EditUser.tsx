@@ -145,7 +145,7 @@ export default function Modal_EditUser({ state, onClose, userToEdit, onSaveSucce
                     </div>
                 </HeaderModal>
                 
-                <div className="p-6 space-y-4">
+                <div className="p-6 space-y-4 text-start">
                     
                     <div className="flex justify-center mb-4">
                         <div className="w-full">

@@ -88,8 +88,7 @@ const handleConfirmDelete = async () => {
   setIsDeleting(true);
   const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api';
   try {
-    const res = await fetch(`${API_URL}/regulations/${regToDelete.reglamento.id}`, {
-      method: 'DELETE',
+    const res = await fetch(`${API_URL}/tournament-regulations/${regToDelete.id}`, {      method: 'DELETE',
       headers: { 'Accept': 'application/json' }
     });
     if (!res.ok) {

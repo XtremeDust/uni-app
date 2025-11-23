@@ -1,12 +1,12 @@
-import React, {ChangeEvent, useState} from 'react'
-import {Modal, ContainModal, HeaderModal, FooterModal, Input, InputGroup, Button, Select, TextArea} from '@/types/ui_components'
-import UploadLogo from '@/components/ui/UpLoad_IMG';
-import Image from 'next/image';
+import React, { ChangeEvent, useState, useEffect } from 'react'
+import { Modal, ContainModal, HeaderModal, FooterModal, Input, InputGroup, Select, TextArea } from '@/types/ui_components'
+import UploadLogo from '@/components/ui/UpLoad_IMG'; 
 
-export interface Modal{
-    state:boolean;
-    onClose: ()=>void;
-    //onActivityCreated: () => void;
+export interface ModalProps {
+  state: boolean;
+  onClose: () => void;
+  onActivityCreated: () => void;
+  dataToEdit?: any; 
 }
 
 const activityTypes = [
@@ -16,12 +16,14 @@ const activityTypes = [
 
 const initialState = {
   title: "",
-  descrip: "",
+  body: "",
   type: null as string | null,
   location: "",
   img: null as File | null,
-  start_date: "",
-  end_date: "",
+  activity_date: "",
+  start_time: "",
+  end_time: "",
+  previewUrl: null as string | null, 
 };
 
 const initialErrors = {
@@ -29,181 +31,172 @@ const initialErrors = {
   type: "",
   location: "",
   img: "",
-  start_date: "",
-  end_date: "",
+  activity_date: "",
+  start_time: "",
+  end_time: "",
 };
 
-export default function modal_Addactivity({state, onClose}:Modal) {
+export default function Modal_AddActivity({ state, onClose, onActivityCreated, dataToEdit }: ModalProps) {
 
   const [formData, setFormData] = useState(initialState);
   const [errors, setErrors] = useState(initialErrors);
   const [loading, setLoading] = useState(false);
   const [isTypeOpen, setIsTypeOpen] = useState(false);
 
+  const formatTime = (val: any) => {
+      if (!val) return "";
+      const timeString = String(val);
+      return timeString.length > 5 ? timeString.substring(0, 5) : timeString;
+  };
+
+  useEffect(() => {
+    if (state) {
+      if (dataToEdit) {
+        
+        const API_DOMAIN = process.env.NEXT_PUBLIC_API_URL?.replace('/api', '') || 'http://localhost:8000';
+        
+        let imageUrl = null;
+        if (dataToEdit.imagen_url) {
+             const cleanPath = dataToEdit.imagen_url.replace('//', '/');
+             imageUrl = cleanPath.startsWith('http') ? cleanPath : `${API_DOMAIN}${cleanPath}`;
+        }
+
+        setFormData({
+          title: dataToEdit.titulo || "",
+          body: dataToEdit.contenido_completo || "", 
+          type: dataToEdit.tipo || null,
+          location: dataToEdit.ubicacion || "",
+          activity_date: dataToEdit.fecha_actividad || "",
+          start_time: formatTime(dataToEdit.hora_inicio),
+          end_time: formatTime(dataToEdit.hora_fin),
+          img: null, 
+          previewUrl: imageUrl 
+        });
+
+      } else {
+        setFormData(initialState);
+      }
+      setErrors(initialErrors);
+    }
+  }, [state, dataToEdit]);
+
   const handleChange = (e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
-    if (errors[name as keyof typeof errors]) {
-      setErrors(prev => ({ ...prev, [name]: "" }));
-    }
+    if (errors[name as keyof typeof errors]) setErrors(prev => ({ ...prev, [name]: "" }));
   };
 
   const handleFileChange = (file: File | null) => {
-    setFormData(prev => ({ ...prev, img: file }));
-    if (file) setErrors(prev => ({ ...prev, img: "" }));
+    setFormData(prev => ({ ...prev, img: file, previewUrl: null })); 
+    if (file && errors.img) setErrors(prev => ({ ...prev, img: "" }));
   };
 
   const handleCloseModal = () => {
-    setFormData(initialState); 
-    setErrors(initialErrors); 
-    setLoading(false);
-  onClose();
- };
+    setFormData(initialState); setErrors(initialErrors); setLoading(false); onClose();
+  };
 
-    const validateForm = (): boolean => {
+  const validateForm = (): boolean => {
     const newErrors = { ...initialErrors };
     let isValid = true;
-    if (!formData.title) { newErrors.title = "El título es obligatorio."; isValid = false; }
-    if (!formData.type) { newErrors.type = "El tipo es obligatorio."; isValid = false; }
-    if (!formData.location) { newErrors.location = "La ubicación es obligatoria."; isValid = false; }
-    if (!formData.start_date) { newErrors.start_date = "La fecha de inicio es obligatoria."; isValid = false; }
-    //if (!formData.end_date) { newErrors.end_date = "La fecha de fin es obligatoria."; isValid = false; }
-    if (!formData.img) { newErrors.img = "Debes subir una imagen/banner.."; isValid = false; }
+    if (!formData.title) { newErrors.title = "Requerido"; isValid = false; }
     
+    if (!formData.previewUrl && !formData.img) { newErrors.img = "Requerido"; isValid = false; }
     setErrors(newErrors);
     return isValid;
   };
 
- const handleFinalSubmit = async () => {
-    if (!validateForm()) return; 
-
+  const handleFinalSubmit = async () => {
+    if (!validateForm()) return;
     setLoading(true);
-
     const data = new FormData();
     data.append('title', formData.title);
-    data.append('descrip', formData.descrip);
+    data.append('body', formData.body);
     data.append('type', formData.type!);
     data.append('location', formData.location);
-    data.append('start_date', formData.start_date);
-    //data.append('end_date', formData.end_date);
-    data.append('img', formData.img!);
+    data.append('activity_date', formData.activity_date);
+    data.append('start_time', formData.start_time);
+    data.append('end_time', formData.end_time);
+    
+    if (formData.img) data.append('img', formData.img);
 
     const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api';
     try {
-      const res = await fetch(`${API_URL}/activities`, {
-        method: 'POST',
-        body: data,
-        // headers: { 'Authorization': `Bearer TU_TOKEN` }
-      });
-
-      if (!res.ok) {
-        const errorData = await res.json();
-        throw new Error(errorData.message || 'Error al crear la actividad');
+      let url = `${API_URL}/activities`;
+      if (dataToEdit) {
+        url = `${API_URL}/activities/${dataToEdit.id}`;
+        data.append('_method', 'PUT'); 
       }
-
-      alert('¡Actividad creada con éxito!');
-      //onActivityCreated();
+      const res = await fetch(url, { method: 'POST', body: data });
+      if (!res.ok) throw new Error('Error');
+      onActivityCreated();
       handleCloseModal();
-
     } catch (e: any) {
-      console.error("Error al enviar formulario:", e);
       alert(e.message);
     } finally {
       setLoading(false);
     }
- }
+  }
 
-return (
-  <Modal state={state}>
-    <ContainModal className={`grid grid-rows-[auto_minmax(0,1fr)_auto] text-black w-[95%] md:w-[70%] lg:w-[60%] xl:w-[50%] 2xl:w-[40%] space-y-3 bg-gray-200 rounded-2xl overflow-hidden max-h-[90vh]`}>
-      <HeaderModal className="flex-none" onClose={handleCloseModal}>
-       <div className="text-start">
-         <h2 className="ml-5 title">Añadir Nueva Actividad</h2>
-         <p className="ml-5 text-[1.2rem]">Complete los datos para realizar el registro de la activididad.</p>
-       </div>
-      </HeaderModal>
+  return (
+    <Modal state={state}>
+      <ContainModal className={`grid grid-rows-[auto_minmax(0,1fr)_auto] text-black w-[95%] md:w-[70%] lg:w-[60%] xl:w-[50%] 2xl:w-[40%] space-y-3 bg-gray-200 rounded-2xl overflow-hidden max-h-[90vh]`}>
+        <HeaderModal className="flex-none" onClose={handleCloseModal}>
+          <div className="text-start">
+            <h2 className="ml-5 title">{dataToEdit ? 'Editar Actividad' : 'Crear Actividad'}</h2>
+          </div>
+        </HeaderModal>
 
-      <div className="relative flex-grow main-modal overflow-y-auto px-4 space-y-4">
-        <section className="flex flex-col p-4 shadow rounded-xl bg-gray-100 space-y-4">
-         <div className="text-start">
-                      <h3 className="text-[1.3rem] font-bold">Detalles de la Actividad</h3>
-                  </div>
+        <div className="relative flex-grow main-modal overflow-y-auto px-4 space-y-4">
+          <section className="flex flex-col p-4 shadow rounded-xl bg-gray-100 space-y-4">
+             
+             <InputGroup label="Título" For="title" labelClass="text-gray-700 text-start">
+                <Input id="title" name="title" type="text" className="input w-full" value={formData.title} onChange={handleChange} />
+             </InputGroup>
+             
+             <InputGroup label="Descripción" For="body" labelClass="text-gray-700 text-start">
+                  <TextArea id="body" name="body" className="input w-full" rows={3} value={formData.body} onChange={handleChange} />
+             </InputGroup>
 
-                  <InputGroup label="Título de la Actividad" For="title" labelClass="text-gray-700 text-start">
-                    <Input
-                      id="title" name="title" type="text" className="input w-full"
-                      placeholder="Ej: Charla: Nutrición para Atletas"
-                      value={formData.title} onChange={handleChange}
-                    />
-                    {errors.title && <p className="text-red-500 text-sm mt-1">{errors.title}</p>}
-                  </InputGroup>
-
-                  <InputGroup label="Descripción" For="descrip" labelClass="text-gray-700 text-start">
-                    <TextArea
-                      id="descrip" name="descrip" className="input w-full" rows={3}
-                      placeholder="Descripción corta de la actividad..."
-                      value={formData.descrip} onChange={handleChange}
-                    />
-                  </InputGroup>
-                  
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <InputGroup label="Tipo de Actividad" For="type" labelClass="text-gray-700 text-start">
-                        <Select
-                          className="bg-gray-50 focus:ring-[1px] focus:ring-unimar focus:outline-none ring ring-gray-400 shadow-md rounded-lg w-full pl-3 pr-3 py-1"
-                          options={activityTypes}
-                          currentValue={formData.type || ""}
-                          isOpen={isTypeOpen}
-                          setOpen={setIsTypeOpen}
-                          onSelect={(id, label) => {
-                            setFormData(prev => ({ ...prev, type: label }));
-                            if (errors.type) setErrors(prev => ({ ...prev, type: "" }));
-                          }}
-                          placeholder="Seleccionar tipo"
-                        />
-                        {errors.type && <p className="text-red-500 text-sm mt-1">{errors.type}</p>}
-                    </InputGroup>
-
-                    <InputGroup label="Ubicación" For="location" labelClass="text-gray-700 text-start">
-                        <Input
-                          id="location" name="location" type="text" className="input w-full"
-                          placeholder="Ej: Cancha Techada UNIMAR"
-                          value={formData.location} onChange={handleChange}
-                        />
-                        {errors.location && <p className="text-red-500 text-sm mt-1">{errors.location}</p>}
-                    </InputGroup>
-                  </div>
-
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <InputGroup label="Fecha de Inicio" For="start_date" labelClass="text-gray-700 text-start">
-                      <Input
-                        id="start_date" name="start_date" type="date" className="input w-full"
-                        value={formData.start_date} onChange={handleChange}
+             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <InputGroup label="Tipo" For="type" labelClass="text-gray-700 text-start">
+                      <Select 
+                        className="bg-gray-50 focus:ring-[1px] focus:ring-unimar focus:outline-none ring ring-gray-400 shadow-md rounded-lg w-full pl-3 pr-3 py-1"
+                        options={activityTypes} currentValue={formData.type || ""} isOpen={isTypeOpen} setOpen={setIsTypeOpen}
+                        onSelect={(id, label) => setFormData(p => ({ ...p, type: label }))}
+                        placeholder="Tipo"
                       />
-                      {errors.start_date && <p className="text-red-500 text-sm mt-1">{errors.start_date}</p>}
-                    </InputGroup>
+                  </InputGroup>
+                  <InputGroup label="Ubicación" For="location" labelClass="text-gray-700 text-start">
+                      <Input id="location" name="location" type="text" className="input w-full" value={formData.location} onChange={handleChange} />
+                  </InputGroup>
+             </div>
 
-                    
-                  </div>
-        </section>
-                <section className="flex flex-col p-3 shadow rounded-xl bg-gray-100">
-                    <UploadLogo
-                        label='Banner de la Actividad'
-                        file={formData.img}
-                        onFileChange={handleFileChange}
-                        error={errors.img}
-                    />
-                </section>
-      </div>
+             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <InputGroup label="Fecha" For="activity_date" labelClass="text-gray-700 text-start">
+                    <Input id="activity_date" name="activity_date" type="date" className="input w-full" value={formData.activity_date} onChange={handleChange} />
+                  </InputGroup>
+                  <InputGroup label="Hora Inicio" For="start_time" labelClass="text-gray-700 text-start">
+                      <Input id="start_time" name="start_time" type="time" className="input w-full" value={formData.start_time} onChange={handleChange} />
+                  </InputGroup>
+                  <InputGroup label="Hora Fin" For="end_time" labelClass="text-gray-700 text-start">
+                      <Input id="end_time" name="end_time" type="time" className="input w-full" value={formData.end_time} onChange={handleChange} />
+                  </InputGroup>
+             </div>
+          </section>
 
-      <FooterModal
-        className="flex-none"
-        BTmain="Crear Actividad"
-        BTSecond="Cerrar"
-        onClose={handleCloseModal}
-        onSumit={handleFinalSubmit}
-        disabled={loading } 
-      />
-    </ContainModal>
-  </Modal>
- )
+          <section className="flex flex-col p-3 shadow rounded-xl bg-gray-100">
+            <UploadLogo 
+                label='Banner de la Actividad' 
+                file={formData.img} 
+                onFileChange={handleFileChange} 
+                error={errors.img} 
+                previewUrl={formData.previewUrl} 
+            />
+          </section>
+        </div>
+
+        <FooterModal className="flex-none" BTmain="Guardar" BTSecond="Cerrar" onClose={handleCloseModal} onSumit={handleFinalSubmit} disabled={loading} />
+      </ContainModal>
+    </Modal>
+  )
 }

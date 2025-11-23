@@ -23,8 +23,8 @@ interface ApiSportInfo {
   nombre: string;
 }
 export interface ApiSportRegulation {
-  id_asignacion: number;
-  deporte: ApiSportInfo; // <-- Propiedad 'deporte'
+  id: number;
+  deporte: ApiSportInfo;
   reglamento: ApiRegulationDetail;
 }
 
@@ -91,7 +91,7 @@ export default function Tabla_Rsport() {
     setIsDeleting(true);
     const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api';
     try {
-      const res = await fetch(`${API_URL}/regulations/${regToDelete.reglamento.id}`, {
+      const res = await fetch(`${API_URL}/sport-regulations/${regToDelete.id}`, {
         method: 'DELETE',
         headers: { 'Accept': 'application/json' }
       });
@@ -150,7 +150,7 @@ export default function Tabla_Rsport() {
             </TableHead>
             <TableBody className="bg-white divide-y divide-gray-200">
               {sportRegs.map((data)=>(
-                <TableRow key={data.id_asignacion || data.reglamento.id} className="hover:bg-gray-100 text-center cursor-pointer"
+                <TableRow key={data.id || data.reglamento.id} className="hover:bg-gray-100 text-center cursor-pointer"
                   onClick={() => setPdfUrl(data.reglamento.archivo_url)}
                 >
                   <TableCell className="font-bold">{data.deporte.nombre}</TableCell>
@@ -191,18 +191,16 @@ export default function Tabla_Rsport() {
         <Modal_VerReglamento url={pdfUrl} onClose={() => setPdfUrl(null)} state={!!pdfUrl} />
       )}
 
-      {/* --- MODAL DE CREAR / EDITAR --- */}
       {(isModalOpen || editingReg) && (
         <ModalAsignarRegla
           state={isModalOpen || !!editingReg}
           onClose={() => { setIsModalOpen(false); setEditingReg(null); }}
-          assignType="sport"  // <-- sport
+          assignType="sport" 
           onSaveSuccess={fetchSportRegs} 
           regulationToEdit={editingReg}
         />
       )} 
 
-      {/* --- MODAL DE ELIMINAR --- */}
       {regToDelete && (
         <ConfirmDeleteModal
           isOpen={!!regToDelete}
