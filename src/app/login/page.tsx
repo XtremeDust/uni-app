@@ -57,7 +57,7 @@ export default function Login() {
         <div className="relative bg-gradient-to-tl from-unimar via-sky-900 to-cyan-600 color-gradient-animation  p-1 gap-1 sm:p-5 min-h-screen flex flex-col">
             <Image 
                 className="absolute inset-0 z-5 size-full"
-                src={'https://res.cloudinary.com/dnfvfft3w/image/upload/v1758905980/flecha-correcta_2_l0zpid.png'}
+                src={'/fondo.jpg'}
                 alt={'logo'}
                 width={100}
                 height={100}

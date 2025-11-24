@@ -225,7 +225,7 @@ export default function Table_Games() {
                             </div>
                             <Table className="w-full">
                                 <TableHead className="text-gray-100 bg-unimar">
-                                    {tituloPartidos.map((t) => <TableHeaderCell key={t.id} className="p-4 justify-end font-semibold">{t.titulo}</TableHeaderCell>)}
+                                    {tituloPartidos.map((t) => <TableHeaderCell key={t.id} className="first:rounded-l-lg last:rounded-r-lg p-4 justify-end font-semibold ">{t.titulo}</TableHeaderCell>)}
                                 </TableHead>
                                 <TableBody className="bg-white divide-y divide-gray-200">
                                     {allGames.map((data) => (

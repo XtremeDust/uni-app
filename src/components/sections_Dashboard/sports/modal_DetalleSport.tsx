@@ -15,6 +15,10 @@ export interface ApiSportDetail {
   descripcion: string;
   logo_url: string | null; 
   equipamiento: string;
+  reglamento?: {
+    titulo: string;
+    archivo_url: string;
+  } | null;
 }
 
 interface ModalProps {
@@ -45,7 +49,7 @@ export default function Modal_DetallesDeporte({ sportData, isLoading, state, onC
           <div className="relative w-full h-48 lg:h-58 rounded-lg overflow-hidden shadow-lg ">
             <Image
               src={sportData.logo_url ? `${API_URL}${sportData.logo_url}` : '/logounimar-25-aniversario.png'}
-              alt={sportData.nombre}
+              alt={'logo del deporte'}
               layout="fill"
               objectFit="cover"
               className="bg-gray-200"
@@ -79,6 +83,32 @@ export default function Modal_DetallesDeporte({ sportData, isLoading, state, onC
                 )}
                 </div>
             </div>
+          </div>
+
+          <div>
+              <h4 className="font-bold text-unimar text-start mb-2">Reglamento Oficial</h4>
+              {sportData.reglamento && sportData.reglamento.archivo_url ? (
+                  <a 
+                      href={sportData.reglamento.archivo_url.startsWith('http') 
+                          ? sportData.reglamento.archivo_url 
+                          : `${API_URL}${sportData.reglamento.archivo_url}`
+                      }
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="w-full flex items-center justify-between p-3 bg-red-50 hover:bg-red-100 rounded-lg border border-red-200 transition-colors font-medium text-sm text-red-700 shadow-sm"
+                  >
+                      <span className='flex items-center gap-2'>
+                          <Image src={'/R-02.png'} alt={'pdf'} width={50} height={50} />
+                          {sportData.reglamento.titulo || "Descargar Archivo Oficial"}
+                      </span>
+                      
+                      <span className="bg-red-600 text-white px-3 py-1 rounded-full text-xs uppercase font-bold">PDF</span>
+                  </a>
+              ) : (
+                  <p className="text-gray-400 text-sm italic p-2 border border-dashed border-gray-300 rounded-lg text-center">
+                      Reglamento digital no disponible.
+                  </p>
+              )}
           </div>
         </div>
         <div>

@@ -3,8 +3,8 @@ export interface card{
     id:number;
     sport:string;
     img:string;
-    urlA?:string;
-    categoria?:categoria[];
+    urlA:string;
+    reglamento:number;
 }
 
 export interface categoria{
