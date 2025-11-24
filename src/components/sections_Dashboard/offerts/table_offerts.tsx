@@ -80,7 +80,6 @@ export default function table_offerts() {
         ...filteredJug,
         ];
 
-    ///filtro estados   
         const [isEst, setSelectEst] = useState<string|null>('Todos'); 
         const [isOpenEst, setisEst] = useState(false);     
 
@@ -114,14 +113,12 @@ export default function table_offerts() {
 
             const API_URL = process.env.NEXT_PUBLIC_API_URL;
             try {
-                // Llama a tu endpoint de ofertas académicas
                 const response = await fetch(`${API_URL}/academic-offerings`);
                 if (!response.ok) {
                     throw new Error(`HTTP error: ${response.statusText}`);
                 }
                 const jsonData = await response.json();
 
-                // Guarda el array que está dentro de la clave 'data'
                 setOfferings(jsonData.data);
 
             } catch (e: any) {
@@ -132,7 +129,7 @@ export default function table_offerts() {
         }
 
         fetchOfferings();
-    }, []); // Carga inicial
+    }, []);
 
     if (loading) return <p>Cargando ofertas académicas...</p>;
     if (error) return <p>Error: {error}</p>;
@@ -221,14 +218,11 @@ export default function table_offerts() {
                                             
                                              <TableCell className="font-bold">
                                                 {data.deporte ? (
-                                                    // Si el deporte existe, muestra el título
                                                     <span>{data.deporte.titulo}</span>
                                                 ) : (
-                                                    // Si data.sport es null (por si acaso), muestra un fallback
                                                     <span className="text-red-500 italic">Deporte no disponible</span>
                                                 )}
 
-                                                {/* Opcional: Muestra si fue borrado (si tiene 'deleted_at') */}
                                                 {data.deporte?.deleted_at && (
                                                     <span className="text-xs text-red-400 block">(Eliminado)</span>
                                                 )}

@@ -11,6 +11,7 @@ import {
   Modal, HeaderModal,ContainModal
  } from '@/types/ui_components'
 import DetalleSubs from './modal_DetalleComents'
+import ConfirmDeleteModal from '@/components/ui/ConfirmDeleteModal'
 
   export interface currentProps{
       current:number;
@@ -119,18 +120,17 @@ import DetalleSubs from './modal_DetalleComents'
     ...filteredEstate,
     ];
 
-
     const [posts, setPosts] = useState<ApiList[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string|null>(null);
 
-    // modal
-        const [isModalOpen, setIsModalOpen] = useState(false);
-        const [loadingModal, setLoadingModal] = useState(false);
-        const [selectedEntry, setSelectedEntry] = useState<ApiList | null>(null);
-        const [selectedComent, setSelectedComent]=useState< APIcoment|null>(null);
-        
-    //
+    const [commnetToDelete, setCommnetToDelete] = useState<ApiList | null>(null);
+    const [isDeleting, setIsDeleting] = useState(false);
+    
+    const [isModalOpen, setIsModalOpen] = useState(false);
+    const [loadingModal, setLoadingModal] = useState(false);
+    const [selectedEntry, setSelectedEntry] = useState<ApiList | null>(null);
+    const [selectedComent, setSelectedComent]=useState< APIcoment|null>(null);
 
     useEffect(() => {
     (async () => {
@@ -179,14 +179,41 @@ const API_URL = process.env.NEXT_PUBLIC_API_URL;
                 const res = await fetch(`${API_URL}/posts/${entryComent.id}`);
                 if (!res.ok) throw new Error(`Error en API subs: ${res.statusText}`);
                 const jsonData = await res.json();
-                setSelectedComent(jsonData.data); // Guardar detalles del equipo
+                setSelectedComent(jsonData.data);
             } catch (e: any) {
                 console.error("Error al cargar detalles del autor:", e);
-                // El modal mostrará un error
             } finally {
                 setLoadingModal(false);
             }
     }
+
+    const handleDeleteClick = (coment: ApiList) => {
+        setCommnetToDelete(coment);
+    };
+
+    const handleConfirmDelete = async () => {
+        if (!commnetToDelete) return;
+        setIsDeleting(true);
+        const API_URL = process.env.NEXT_PUBLIC_API_URL;
+
+        try {
+            const res = await fetch(`${API_URL}/posts/${commnetToDelete.id}`, {
+                method: 'DELETE',
+                headers: { 'Accept': 'application/json' }
+            });
+
+            if (!res.ok) throw new Error("Error al eliminar el comentario");
+
+            alert("Suscripción eliminada");
+            setCommnetToDelete(null);
+            //fetchcomment();
+
+        } catch (e: any) {
+            alert(e.message);
+        } finally {
+            setIsDeleting(false);
+        }
+    };
 
   return (
     <div>
@@ -276,7 +303,7 @@ const API_URL = process.env.NEXT_PUBLIC_API_URL;
                                                               >
                                                                   <Button className={`btn rounded-lg cursor-pointer size-12 ${btn.id ===3? 'hover:bg-rose-300/50':'hidden'}`}
                                                                       onClick={() => { 
-                                                                          
+                                                                         if(btn.id === 3) handleDeleteClick(data);
                                                                       }}
                                                                   >
                                                                       <Image
@@ -307,7 +334,6 @@ const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
               </section>
 
-            {/* --- El Modal autores --- */}
             {isModalOpen && (
                 <DetalleSubs
                     entryData={selectedEntry}
@@ -317,6 +343,18 @@ const API_URL = process.env.NEXT_PUBLIC_API_URL;
                     onClose={() => setIsModalOpen(false)}
                 />
             )}
+
+
+                    {commnetToDelete && (
+                        <ConfirmDeleteModal
+                            isOpen={!!commnetToDelete}
+                            title="Eliminar Suscripción"
+                            message={`¿Desea eliminar el comentario de ${commnetToDelete.email || commnetToDelete.autor}?`}
+                            onClose={() => setCommnetToDelete(null)}
+                            onConfirm={handleConfirmDelete}
+                            isLoading={isDeleting}
+                        />
+                    )}
       </div>        
     </div>
   )

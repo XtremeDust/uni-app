@@ -99,26 +99,18 @@ export default function Table_Sports() {
       headers: { 'Accept': 'application/json' }
     });
 
-    // --- MEJORA DE MANEJO DE ERRORES ---
     if (!res.ok) {
-      // Intenta leer el mensaje de error real de tu API de Laravel
       const errorData = await res.json(); 
-      // Lanza ese mensaje de error, que será más específico
       throw new Error(errorData.message || `Error ${res.status}: No se pudo eliminar`);
     }
     
-    // --- MEJORA DE ÉXITO ---
-    // Si res.ok es true, todo salió bien
+    setSportToDelete(null); 
+    fetchSport(); 
     
-    setSportToDelete(null); // Cierra el modal
-    fetchSport(); // Refresca la tabla
-    
-    // ¡Aquí está el alert de éxito que faltaba!
     alert('¡Deporte eliminado con éxito!'); 
 
   } catch (e: any) {
-    // Este alert ahora mostrará el error real de la API
-    // (ej: "No se puede eliminar, el deporte está en uso")
+  
     console.error("Error al eliminar:", e);
     alert(e.message); 
   } finally {
@@ -285,7 +277,7 @@ export default function Table_Sports() {
                 state={isAddModalOpen}
                 onClose={() => setIsAddModalOpen(false)}
                 onSportCreated={() => {
-                    fetchSport(); // Refresca la tabla al guardar
+                    fetchSport();
                 }}
             />
 

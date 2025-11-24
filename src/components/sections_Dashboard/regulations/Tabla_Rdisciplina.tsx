@@ -14,9 +14,8 @@ import {
 } from '@/types/ui_components';
 import ModalAsignarRegla from './Modal_addRegulation';
 import Modal_VerReglamento from './Modal_reglamento';
-import ConfirmDeleteModal from '@/components/ui/ConfirmDeleteModal'; // <-- Agregado
+import ConfirmDeleteModal from '@/components/ui/ConfirmDeleteModal';
 
-// Interfaces para tipado (opcional pero recomendado para evitar errores)
 export interface ApiRegulation {
   id: number;
   titulo: string;
@@ -28,8 +27,8 @@ export interface ApiRegulation {
 }
 
 export interface ApiDisciplineRegulation {
-  id_asignacion: number; // Usado como key en tu código original
-  discipline: {          // En tu código original usas 'discipline'
+  id_asignacion: number;
+  discipline: { 
     id: number;
     nombre_deporte: string;
     categoria: string;
@@ -38,7 +37,7 @@ export interface ApiDisciplineRegulation {
 }
 
 const titlesreglas = [
-    {id:1,titulo:'Disciplina'}, // Cambiado título a Disciplina
+    {id:1,titulo:'Disciplina'}, 
     {id:2,titulo:'Documento (Reglamento)'},
     {id:3,titulo:'Publicado'},
     {id:4,titulo:'Creador'},
@@ -52,16 +51,13 @@ const buttons = [
 ]
 
 export default function Tabla_Rdisciplina() {
-  // Usamos la interfaz o any si prefieres, pero la interfaz ayuda con el autocompletado
   const [disciplineRegs, setDisciplineRegs] = useState<ApiDisciplineRegulation[]>([]); 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   
-  // Estados originales
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [pdfUrl, setPdfUrl] = useState<string | null>(null);
 
-  // --- NUEVOS ESTADOS PARA EDITAR Y ELIMINAR ---
   const [editingReg, setEditingReg] = useState<ApiDisciplineRegulation | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
   const [regToDelete, setRegToDelete] = useState<ApiDisciplineRegulation | null>(null);
@@ -86,7 +82,6 @@ export default function Tabla_Rdisciplina() {
     fetchDisciplineRegs();
   }, []);
 
-  // --- NUEVAS FUNCIONES ---
 
   const handleEditClick = (reg: ApiDisciplineRegulation) => {
     console.log("Abriendo modal para editar:", reg);
@@ -116,7 +111,7 @@ export default function Tabla_Rdisciplina() {
 
       alert('¡Reglamento eliminado con éxito!');
       setRegToDelete(null);
-      fetchDisciplineRegs(); // Recargar tabla
+      fetchDisciplineRegs();
 
     } catch (e: any) {
       console.error("Error al eliminar:", e);
@@ -213,7 +208,6 @@ export default function Tabla_Rdisciplina() {
                             <div key={btn.id} 
                                 onClick={(e) => {
                                     e.stopPropagation();
-                                    // --- AQUI AGREGAMOS LA LOGICA ---
                                     if (btn.id === 2) handleEditClick(data);
                                     if (btn.id === 3) handleDeleteClick(data);
                                 }}
@@ -245,7 +239,6 @@ export default function Tabla_Rdisciplina() {
               />
       )}
 
-      {/* --- MODIFICADO PARA SOPORTAR EDICIÓN --- */}
       {(isModalOpen || editingReg) && (
         <ModalAsignarRegla
           state={isModalOpen || !!editingReg}
@@ -255,11 +248,10 @@ export default function Tabla_Rdisciplina() {
           }}
           assignType="discipline" 
           onSaveSuccess={fetchDisciplineRegs}
-          regulationToEdit={editingReg} // Pasamos el dato a editar
+          regulationToEdit={editingReg} 
         />
       )}
 
-      {/* --- MODAL DE ELIMINAR AGREGADO --- */}
       {regToDelete && (
         <ConfirmDeleteModal
           isOpen={!!regToDelete}

@@ -7,27 +7,30 @@ import React, { Suspense } from 'react';
     const TorneosModule = React.lazy(() => import('@/app/dashboard/gestion/tournaments/page')); 
     const OfertasModule = React.lazy(() => import('@/app/dashboard/offerts/page')); 
     const SportsModule = React.lazy(()=> import('@/app/dashboard/sport/Sports'));
-    const ComentariosModule = React.lazy(() => import('@/app/dashboard/coments/page'));
+    const ComentsModule = React.lazy(() => import('@/app/dashboard/coments/page'));
+    const NotificationModule = React.lazy(()=>import('@/app/dashboard/notification/page'))
 
     const VIEW_KEYS = {
     HOME: 1,
     NORMATIVAS: 2,
     INSCRIPCIONES: 3,
-    EVENTOS_GENERAL: 4,
-    EVENTOS_GESTION: 5,
-    OFERTAS: 6,
-    COMENTARIOS: 7,
-    SPORTS:8,
+    NOTIFICATIONS:4,
+    EVENTOS_GENERAL: 5,
+    EVENTOS_GESTION: 6,
+    OFERTAS: 7,
+    COMENTARIOS: 8,
+    SPORTS:9,
     };
 
     const VIEW_COMPONENTS: Record<number, React.FC> = {
     [VIEW_KEYS.HOME]: HomeModule,
     [VIEW_KEYS.NORMATIVAS]: NormativasModule,
     [VIEW_KEYS.INSCRIPCIONES]: InscripcionesModule,
+    [VIEW_KEYS.NOTIFICATIONS]: NotificationModule,
     [VIEW_KEYS.EVENTOS_GENERAL]: EventosModule,
     [VIEW_KEYS.EVENTOS_GESTION]: TorneosModule,
     [VIEW_KEYS.OFERTAS]: OfertasModule,
-    [VIEW_KEYS.COMENTARIOS]: ComentariosModule,
+    [VIEW_KEYS.COMENTARIOS]: ComentsModule,
     [VIEW_KEYS.SPORTS]:SportsModule,
     };
 

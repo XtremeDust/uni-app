@@ -52,7 +52,6 @@ export default function Table_Rtorneo() {
 
     const [isModalOpen, setIsModalOpen] = useState(false);
      const [pdfUrl, setPdfUrl] = useState<string | null>(null);
-     ///
      const [isDeleting, setIsDeleting] = useState(false);
      const [regToDelete, setRegToDelete] = useState<ApiTournamentRegulation | null>(null);
      const [editingReg, setEditingReg] = useState<ApiTournamentRegulation | null>(null);

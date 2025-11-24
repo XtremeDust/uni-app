@@ -8,7 +8,6 @@ import ModalAsignarRegla from './Modal_addRegulation';
 import Modal_VerReglamento from './Modal_reglamento';
 import ConfirmDeleteModal from '@/components/ui/ConfirmDeleteModal'; // <-- Importar Modal
 
-// Interfaz para Deporte
 export interface ApiRegulationDetail {
   id: number;
   titulo: string;
@@ -125,7 +124,6 @@ export default function Tabla_Rsport() {
       {sportRegs.length > 0 ?(
         <>
             <div className="Filtro grid grid-rows-2 md:flex items-center mb-6 gap-3 shadow p-3 bg-gray-800/8 rounded-2xl">
-               {/* ... Filtros ... */}
                <div className="relative w-full flex ">
                   <label htmlFor='buscar' className="h-full place-content-center absolute left-0 px-2 pl-3.5 cursor-pointer rounded-2xl">
                       <Image className="size-8" src={'/lupa.png'} alt="buscar" width={60} height={60}/>

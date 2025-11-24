@@ -4,7 +4,7 @@ import Image from 'next/image'
 import Modal_addtorneos from '@/components/sections_Dashboard/torneos/modal_AddTorneos'
 import Modal_addDiscipline from '@/components/sections_Dashboard/torneos/modal_Adddisciplinas'
 import DetallesTorneo from './modal_DetallesTorneo'
-import ConfirmDeleteModal from '@/components/ui/ConfirmDeleteModal' // <-- Importar modal eliminar
+import ConfirmDeleteModal from '@/components/ui/ConfirmDeleteModal'  
 
 import { 
   Input,

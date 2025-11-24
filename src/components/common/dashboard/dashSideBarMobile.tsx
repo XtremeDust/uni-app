@@ -88,7 +88,7 @@ export default function AsideMobile({onNavigate, CurrentKey, ...props}: AsidePro
 
             {isOptionOpen && (
                 <div className="fixed inset-0 bg-black/50 z-50 flex justify-end" onClick={() => handleOptions()}>
-                    <div className="bg-white absolute bottom-0 h-auto w-full shadow-2xl p-4 flex flex-col gap-1.5" onClick={(e) => e.stopPropagation()}> {/* StopPropagation para que no se cierre al tocar dentro */}
+                    <div className="bg-white absolute bottom-0 h-auto w-full shadow-2xl p-4 flex flex-col gap-1.5" onClick={(e) => e.stopPropagation()}>
 
                         {invisibleOptions.map((item) => (
                             <div key={item.id}>

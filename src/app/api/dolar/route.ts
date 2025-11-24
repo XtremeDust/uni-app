@@ -10,7 +10,6 @@ interface DolarRate {
   fechaActualizacion: string;
 }
 
-// Esta es tu API route interna
 export async function GET() {
   const url = 'https://ve.dolarapi.com/v1/dolares';
 
@@ -22,7 +21,6 @@ export async function GET() {
 
     const data: DolarRate[] = await response.json();
 
-    // Puedes filtrar o devolver todo el arreglo
     const oficial = data.find(d => d.nombre === "Oficial");
     const paralelo = data.find(d => d.nombre === "Paralelo");
 

@@ -30,8 +30,8 @@ interface ApiActivityDetail {
 }
 
 const titleventos = [
-    {id:1, titulo:"Evento"}, {id:2, titulo:"Tipo"}, {id:3, titulo:"Inscritos"},
-    {id:4, titulo:"Fecha"}, {id:5, titulo:"Estado"}, {id:6, titulo:"Acciones"},
+    {id:1, titulo:"Evento"}, {id:2, titulo:"Tipo"}, {id:3, titulo:"Fecha"},
+    {id:4, titulo:"Ubicación"}, {id:5, titulo:"Estado"}, {id:6, titulo:"Acciones"},
 ]
 
 const buttons = [
@@ -193,7 +193,7 @@ export default function TableActivity() {
                 {activities.length > 0 ? (
                    <Table className="Tabla w-full">
                       <TableHead className="text-gray-100 bg-unimar">
-                          {titleventos.map((t) => <TableHeaderCell key={t.id} className="p-4 justify-end font-semibold">{t.titulo}</TableHeaderCell>)}
+                          {titleventos.map((t) => <TableHeaderCell key={t.id} className="first:rounded-l-lg last:rounded-r-lg p-4 justify-center text-center font-semibold ">{t.titulo}</TableHeaderCell>)}
                       </TableHead>
                       <TableBody className="bg-white divide-y divide-gray-200">
                         {activities.map((data) => (

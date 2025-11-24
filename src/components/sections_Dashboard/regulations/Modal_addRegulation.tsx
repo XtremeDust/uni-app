@@ -254,7 +254,6 @@ export default function Modal_addRegulation({
 
   const getCurrentLabel = () => {
       if (!assignType) return "";
-      // Busca en la lista COMPLETA de items
       const found = items.find(i => i.id === formData.selectedItemId);
       return found ? found.label : "Seleccionar...";
   };

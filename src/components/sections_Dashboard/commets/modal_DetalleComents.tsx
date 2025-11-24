@@ -48,42 +48,83 @@ export default function DetalleSubs({ entryData, userData, isLoading, onClose, s
 
     return (
         <Modal state={state}>
-            <ContainModal className='bg-white text-black'>
-                <HeaderModal className="flex-none" onClose={onClose}>
-                    <div className="text-start">
-                        <h2 className="ml-5 title">Comentarios</h2>
-                    </div>
-                </HeaderModal>
-                <div > {/* Fondo oscuro */}
-                    <div > {/* Contenido del modal */}
-                        
-                        {/* 1. Información del autor */}
-                        <p><strong>Fecha de publicación:</strong> {entryData.fecha_creacion}</p>
-                        <p><strong>Comentario en estado:</strong> {entryData.estado}</p>
-                        <hr />
+  {/* Aumentamos el ancho máximo para que respire mejor (max-w-3xl) */}
+  <ContainModal className="bg-white text-black max-w-3xl w-full rounded-lg shadow-xl overflow-hidden">
+    
+    <HeaderModal className="flex-none border-b border-gray-100 py-4" onClose={onClose}>
+      <div className="text-start">
+        {/* Título más grande y oscuro */}
+        <h2 className="ml-6 text-2xl font-bold text-slate-900">Comentarios</h2>
+      </div>
+    </HeaderModal>
 
-                        {/* 2. Información del EQUIPO/JUGADOR (la que buscamos) */}
-                        {isLoading ? (
-                            <p>Cargando detalles del autor...</p>
-                        )  : userData ? (
-                            // Caso Equipo
-                            <div>
-                                <h3 className='text-lg font-semibold'>Información del autor</h3>                                
-                                <p className={`${userData.autor?.nombre ? '':'hidden'}`}><strong>Nombre:</strong> {userData.autor?.nombre}</p>
-                                <p className={`${userData.autor?.cedula ? '':'hidden'}`}><strong>Cedula:</strong> {userData.autor?.cedula}</p>
-                                <p><strong>Email:</strong> {userData.autor?.email || userData.email}</p>
-                                <p className={`${userData.autor?.telefono ? '':'hidden'}`}><strong>Telefono:</strong> {userData.autor?.telefono}</p>
+    <div className="p-6"> {/* Padding interno generoso */}
+      {isLoading ? (
+        <div className="flex justify-center items-center py-10">
+             <p className="text-gray-500 animate-pulse">Cargando detalles...</p>
+        </div>
+      ) : userData ? (
+        
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 divide-y md:divide-y-0 md:divide-x divide-gray-200">
+          
+          <div className="text-start pr-4">
+            <p className="text-gray-600  leading-relaxed">
+              {userData.comentario || "Sin comentario disponible."}
+            </p>
+          </div>
 
-                                <div>
-                                    <p>{userData.comentario}</p>
-                                </div>
-                            </div>
-                        ) : (
-                            <p>No se pudieron cargar los detalles del autor.</p>
-                        )}
-                    </div>
-                </div>
-            </ContainModal>
-        </Modal>
+          <div className="text-start pl-0 md:pl-6 space-y-6">
+            
+            <div className="space-y-3">
+              <div>
+                <p className="font-bold text-slate-800 text-sm">Fecha de publicación:</p>
+                <p className="text-gray-500 text-sm">{entryData.fecha_creacion}</p>
+              </div>
+              <div>
+                <p className="font-bold text-slate-800 text-sm">Comentario en estado:</p>
+                <p className="text-gray-500 text-sm capitalize">{entryData.estado}</p>
+              </div>
+            </div>
+
+            <div>
+              <h3 className="text-blue-950 font-bold text-lg mb-3">Información del autor</h3>
+              
+              <div className="space-y-2 text-sm">
+                {userData.autor?.nombre && (
+                  <p>
+                    <span className="font-bold text-slate-700">Nombre:</span> 
+                    <span className="text-gray-600 ml-1">{userData.autor.nombre}</span>
+                  </p>
+                )}
+
+                {userData.autor?.cedula && (
+                  <p>
+                    <span className="font-bold text-slate-700">Cédula:</span> 
+                    <span className="text-gray-600 ml-1">{userData.autor.cedula}</span>
+                  </p>
+                )}
+
+                <p>
+                    <span className="font-bold text-slate-700">Email:</span> 
+                    <span className="text-gray-600 ml-1 break-all">{userData.autor?.email || userData.email}</span>
+                </p>
+
+                {userData.autor?.telefono && (
+                   <p>
+                    <span className="font-bold text-slate-700">Teléfono:</span> 
+                    <span className="text-gray-600 ml-1">{userData.autor.telefono}</span>
+                  </p>
+                )}
+              </div>
+            </div>
+
+          </div>
+        </div>
+      ) : (
+        <p className="text-red-500 text-center">No se pudieron cargar los detalles.</p>
+      )}
+    </div>
+  </ContainModal>
+</Modal>
     );
 }

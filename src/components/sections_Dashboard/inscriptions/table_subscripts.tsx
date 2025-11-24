@@ -239,7 +239,7 @@ function DetalleSubs({ sub, state, onClose }: ModalPropsSubs) {
                     <hr className="border-gray-200" />
 
                     {sub.suscriptor ? (
-                        <div className="space-y-2">
+                        <div className="space-y-2 text-justify">
                             <h3 className="font-bold text-gray-800">Cuenta Vinculada</h3>
                             <div className="flex flex-col space-y-1 text-sm">
                                 <p><span className="font-semibold">Nombre:</span> {sub.suscriptor.nombre}</p>

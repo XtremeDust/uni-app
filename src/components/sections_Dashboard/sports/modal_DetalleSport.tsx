@@ -4,7 +4,8 @@ import Image from 'next/image';
 import { 
   Modal, 
   ContainModal, 
-  HeaderModal 
+  HeaderModal, 
+  Button
 } from '@/types/ui_components';
 
 export interface ApiSportDetail {
@@ -39,8 +40,8 @@ export default function Modal_DetallesDeporte({ sportData, isLoading, state, onC
     }
 
     return (
-      <div className="flex flex-col  gap-6 p-6">
-        <div className="flex-shrink-0 w-full  justify-center place-content-center items-center">
+      <div className="flex flex-col  gap-3">
+        <div className="flex-shrink-0 mt-3 w-full px-6 justify-center place-content-center items-center">
           <div className="relative w-full h-48 lg:h-58 rounded-lg overflow-hidden shadow-lg ">
             <Image
               src={sportData.logo_url ? `${API_URL}${sportData.logo_url}` : '/logounimar-25-aniversario.png'}
@@ -51,18 +52,18 @@ export default function Modal_DetallesDeporte({ sportData, isLoading, state, onC
             />
           </div>
         </div>
-        <div className="flex-grow">
-          <div className='flex items-center gap-5 justify-center xl:justify-start'>
-              <h3 className="text-2xl font-bold text-gray-800 mb-4">{sportData.nombre}</h3>
-              <p className="text-xl text-unimar mb-4 font-semibold">({sportData.tipo})</p> 
+        <div className="flex-grow px-6">
+          <div className=' items-center gap-5 justify-center xl:justify-start'>
+              <h3 className="title font-bold text-gray-800 ">{sportData.nombre}</h3>
+              <p className="text-md text-unimar mb-2 font-semibold">({sportData.tipo})</p> 
           </div>
-          <div className="space-y-4">
-            <div>
+          <div className="space-y-2">
+            <div className='text-justify'>
               <h4 className="font-bold text-gray-700">Descripción</h4>
               <p className="text-gray-600 whitespace-pre-wrap">{sportData.descripcion}</p>
             </div>
             <div>
-                <h4 className="font-bold text-gray-700">Equipamiento Necesario</h4>               
+                <h4 className="font-bold text-gray-700 text-start">Equipamiento Necesario</h4>               
                 <div className="flex flex-wrap gap-2 p-2 rounded-lg justify-center">
                 {sportData.equipamiento && (
                     <div className="flex flex-wrap gap-2 pt-2 justify-center">
@@ -80,6 +81,8 @@ export default function Modal_DetallesDeporte({ sportData, isLoading, state, onC
             </div>
           </div>
         </div>
+        <div>
+        </div>
       </div>
     );
   };
@@ -96,6 +99,12 @@ export default function Modal_DetallesDeporte({ sportData, isLoading, state, onC
         <div className="main-modal overflow-y-auto">
           {renderContent()}
         </div>
+
+          <Button className='btn bg-unimar text-white  hover:opacity-95 cursor-pointer'
+           onClick={onClose}
+          >
+            Cerrar
+          </Button>
 
       </ContainModal>
     </Modal>

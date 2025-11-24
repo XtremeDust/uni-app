@@ -13,6 +13,7 @@ import {
 import TeamModal from '@/components/sections_Dashboard/inscriptions/modal_AddTeam';
 import DetalleEquipoModal from '@/components/sections_Dashboard/inscriptions/modal_DetallesEquipo'
 import ModalCambioEstado from '@/components/sections_Dashboard/inscriptions/modal_CambioEstado'
+import ConfirmDeleteModal from '@/components/ui/ConfirmDeleteModal';
 
 interface ApiUser {
   id: number;
@@ -77,6 +78,9 @@ export default function table_teams_inscritos() {
 
         const [isCat, setSelectCat] = useState<string|null>('Todos'); 
         const [isOpenCat, setisCat] = useState(false);
+
+        const [teamToDelete, setTeamToDelete] = useState<ApiTeam | null>(null);
+        const [isDeleting, setIsDeleting] = useState(false);
     
             const handleSelectCat = (id: number, label:string) => {
             setSelectCat(label);
@@ -164,6 +168,17 @@ export default function table_teams_inscritos() {
             }
         };
 
+         const handleDeleteClick = (row: ApiTeam) => {
+            setTeamToDelete(row);
+        };
+
+        const handleConfirmDelete = async () => {
+            if(!teamToDelete) return;
+            setIsDeleting(true);
+            alert("eliminar Team pendiente de endpoint.");
+            setIsDeleting(false);
+            setTeamToDelete(null);
+        };
 
         const [teams, setTeams] = useState<ApiTeam[]>([]);
 
@@ -172,18 +187,15 @@ export default function table_teams_inscritos() {
 
         const [editingTeam, setEditingTeam] = useState<ApiTeam | null>(null);
 
-        // modal
-            const [isModalOpen, setIsModalOpen] = useState(false);
-            const [loadingModal, setLoadingModal] = useState(false);
+        const [isModalOpen, setIsModalOpen] = useState(false);
+        const [loadingModal, setLoadingModal] = useState(false);
 
-            //modal team
-            const [selectedEntry, setSelectedEntry] = useState<ApiTeam | null>(null);
-            const [selectedTeam, setSelectedTeam] = useState<ApiTeam | null>(null);
+        const [selectedEntry, setSelectedEntry] = useState<ApiTeam | null>(null);
+        const [selectedTeam, setSelectedTeam] = useState<ApiTeam | null>(null);
 
-            //modal estado
-            const [isStateModalOpen, setIsStateModalOpen] = useState(false);
-            const [selectedEntryForState, setSelectedEntryForState] = useState<ApiTeam | null>(null);
-            const [isSavingState, setIsSavingState] = useState(false); 
+        const [isStateModalOpen, setIsStateModalOpen] = useState(false);
+        const [selectedEntryForState, setSelectedEntryForState] = useState<ApiTeam | null>(null);
+        const [isSavingState, setIsSavingState] = useState(false); 
         //
 
         const fetchAllData = async()=>{
@@ -434,7 +446,8 @@ export default function table_teams_inscritos() {
                                         >
                                             <Button className={`btn rounded-lg cursor-pointer size-12 ${btn.id ===1? 'hover:bg-unimar/10' : (btn.id===2? 'hover:bg-gray-300/50': 'hover:bg-rose-300/50' )}`}
                                                 onClick={() => { 
-                                                    handleActionClick(btn.id, entry)
+                                                     if (btn.id === 2) handleActionClick(btn.id, entry)
+                                                     if (btn.id === 3) handleDeleteClick(entry)
                                                 }}
                                             >
                                                 <Image
@@ -492,6 +505,17 @@ export default function table_teams_inscritos() {
             inscriptionToEdit={editingTeam} 
             onSaveSuccess={fetchAllData}
         />       
+    )}
+
+    {teamToDelete && (
+        <ConfirmDeleteModal
+            isOpen={!!teamToDelete}
+            title="Eliminar Usuario"
+            message={`¿Desea eliminar a ${teamToDelete.nombre}?`}
+            onClose={() => setTeamToDelete(null)}
+            onConfirm={handleConfirmDelete}
+            isLoading={isDeleting}
+        />
     )}
     </section>
   )
