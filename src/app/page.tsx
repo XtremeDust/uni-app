@@ -14,13 +14,11 @@ export default function Home() {
     
     >
 
-      {/*Header*/}
       <Header></Header>
-      
-      {/*content*/}
+
       <main className="bg-gray-50 text-black space-y-5">          
             <div className="Hero Banner"> 
-            <Banner SRC="https://res.cloudinary.com/dnfvfft3w/image/upload/v1758470460/Lucid_Origin_A_dynamic_wideformat_cinematic_photo_in_the_style_0_qx2poq.jpg" ALT="banner"></Banner>
+            <Banner SRC="/bannerHeader3.jpg" ALT="banner"></Banner>
             </div>
             <div className="features">
               <Features/>
@@ -33,7 +31,7 @@ export default function Home() {
             </div>
             
       </main>
-      {/*Footer*/}
+      
       <Footer></Footer>
     </div>
   );
