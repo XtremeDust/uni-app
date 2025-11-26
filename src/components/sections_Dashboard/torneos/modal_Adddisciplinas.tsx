@@ -200,8 +200,8 @@ export default function Modal_addDiscipline({ state, onClose, onSaveSuccess,Disc
                     sport_id: d.sportId,
                     category: d.category,
                     game_mode: d.gameMode,
-                    min_participants: d.min,
-                    max_participants: d.max,
+                    min_members_team: d.min,
+                    max_members_team: d.max,
                 })
             }).then(async res => {
                 if (!res.ok) {

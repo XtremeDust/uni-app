@@ -55,6 +55,19 @@ export default function MatchControlOverlay({ gameId, onClose, onUpdate }: Props
   const isFirstRun = useRef(true)
   const { formatTime } = useStopwatch(state.status === 'en partido')
 
+  const handleCloseWithCheck = () => {
+        if (saveState !== 'saved') {
+            const confirmExit = window.confirm(
+                " ¡Atención! Hay cambios pendientes o en proceso de guardado. ¿Está seguro de que desea salir y posiblemente perder los últimos cambios?"
+            );
+            if (confirmExit) {
+                onClose();
+            }
+        } else {
+            onClose();
+            }
+    }
+
   useEffect(() => {
     const fetchGame = async () => {
       try {
@@ -147,7 +160,10 @@ export default function MatchControlOverlay({ gameId, onClose, onUpdate }: Props
                 <div className="bg-slate-100 px-5 py-2 rounded-lg text-3xl font-black text-slate-800 font-mono tracking-tight">
                     {formatTime()}
                 </div>
-                <button onClick={onClose} className="bg-slate-100 cursor-pointer hover:bg-slate-200 text-slate-600 font-bold px-4 py-3 rounded-lg text-sm transition-colors">
+                <button 
+                    onClick={handleCloseWithCheck} 
+                    className="bg-slate-100 cursor-pointer hover:bg-slate-200 text-slate-600 font-bold px-4 py-3 rounded-lg text-sm transition-colors"
+                >
                     Salir
                 </button>
             </div>
@@ -265,14 +281,14 @@ export default function MatchControlOverlay({ gameId, onClose, onUpdate }: Props
                         >-</button>
                         
                         {rules.points.map(p => (
-                             <button 
+                             <Button 
                                 key={p} 
                                 disabled={!isMatchActive} 
                                 onClick={() => modifyScore('B', p)} 
                                 className="flex-1 h-14 rounded-lg bg-slate-100 cursor-pointer text-slate-800 hover:bg-slate-200 font-black text-xl transition-colors flex items-center justify-center gap-1 disabled:cursor-not-allowed disabled:text-slate-300"
                             >
                                 <span className="text-sm font-bold align-top">+</span>{p}
-                            </button>
+                            </Button>
                         ))}
                     </div>
                 </div>

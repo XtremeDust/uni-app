@@ -64,6 +64,7 @@ interface ApiDiscipline{
     categoria:string;
     modo_juego:string;
     nombre_deporte:string;
+    estado: 'abierto' | 'cerrado' | 'proximo' | 'cancelado';
 }
 
 interface ApiCompetidor{
@@ -134,7 +135,7 @@ export default function modal_DetallesTorneo({state, isLoading, entryData, Depor
                 </div>
 
                 <Image
-                    src={DeporteData?.img ? `${API_URL}${DeporteData.img}` : '/logounimar-25-aniversario.png'}
+                    src={DeporteData?.img ?`${API_URL}${DeporteData.img}`: '/logounimar-25-aniversario.png'}
                     alt="Banner Torneo"
                     fill
                     className="object-cover"
@@ -207,42 +208,43 @@ export default function modal_DetallesTorneo({state, isLoading, entryData, Depor
                     </section>
 
                     <section className="bg-white p-4 rounded-xl shadow-sm border border-gray-100">
-                    <h3 className="text-lg font-bold text-slate-800 mb-3 border-b border-gray-100 pb-2">
+                        <h3 className="text-lg font-bold text-slate-800 mb-3 border-b border-gray-100 pb-2">
+                            Descripción
+                        </h3>
+                        <div className="text-sm text-slate-600 leading-relaxed whitespace-pre-wrap">
+                            {DeporteData.descripcion}
+                        </div>
+                    </section>
+
+                    <section className="bg-white px-4 py-2 rounded-xl shadow-sm border border-gray-100">
+                    <h3 className="text-lg font-bold text-slate-800 mb-2 border-b border-gray-100 pb-2">
                         Reglamento(s) del Torneo
                     </h3>
                     
                     {DeporteData.reglamentos_torneo && DeporteData.reglamentos_torneo.length > 0 ? (
-                        <div className="space-y-2">
+                        <div className="space-y-1">
                             {DeporteData.reglamentos_torneo.map(reg => (
-                                <div key={reg.id} className="flex items-center justify-between p-2 bg-slate-50 rounded-lg border border-slate-100 hover:border-blue-200 transition-colors">
-                                <div className="flex items-center gap-3">
-                                    <div className=" p-1.5 rounded bg-unimar/8">
-                                        <Image
-                                            src={'/R-02.png'}
-                                            alt='imagen'
-                                            width={27}
-                                            height={25}
-                                        />
+                                <div key={reg.id} className="flex items-center justify-between px-2 py-1.5 bg-slate-50 rounded-lg border border-blue-100 transition-colors mb-2">
+                                    <div className="flex items-center gap-3">
+                                        <div className=" p-1.5 rounded bg-unimar/8">
+                                            <Image
+                                                src={'/R-02.png'}
+                                                alt='imagen'
+                                                width={27}
+                                                height={25}
+                                            />
+                                        </div>
+                                        
+                                        <span className="font-semibold text-slate-700 text-sm">{reg.titulo}</span>
                                     </div>
-                                    
-                                    <span className="font-semibold text-slate-700 text-sm">{reg.titulo}</span>
-                                </div>
-                                
-                                <a 
-                                    href={reg.url_archivo} 
-                                    target="_blank" 
-                                    rel="noopener noreferrer"
-                                    className="bg-unimar/90 hover:bg-unimar text-white text-xs font-bold py-1.5 px-3 rounded-lg flex items-center gap-1.5 transition-colors"
-                                >
-                                    <Image
-                                    className=' invert grayscale'
-                                            src={'/descarga.png'}
-                                            alt='descarga'
-                                            width={27}
-                                            height={25}
-                                        />
-                                    Descargar
-                                </a>
+                                    <a  
+                                        href={`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api'}/regulations/${reg.id}/download`}   
+                                        target="_blank" 
+                                        rel="noopener noreferrer"
+                                        className="bg-unimar/90 cursor-pointer hover:bg-unimar text-white text-xs font-bold py-2 px-3 rounded-lg flex items-center gap-1.5 transition-colors"
+                                    >
+                                        Descargar
+                                    </a>
                                 </div>
                             ))}
                         </div>
@@ -285,6 +287,14 @@ export default function modal_DetallesTorneo({state, isLoading, entryData, Depor
                                         <h4 className="font-bold text-slate-800 text-sm md:text-base">
                                             {discipline.nombre_deporte} <span className="font-normal text-gray-500 text-xs md:text-sm">({discipline.categoria})</span>
                                         </h4>
+
+                                        <span className={`text-xs font-semibold uppercase tracking-wide px-2 py-0.5 mt-1 rounded-full ${
+                                            discipline.estado === 'abierto' ? 'bg-green-100 text-green-700' :
+                                            discipline.estado === 'cerrado' ? 'bg-red-100 text-red-700' :
+                                            'bg-blue-100 text-blue-700'
+                                        }`}>
+                                            {discipline.estado} ({discipline.modo_juego})
+                                        </span>
                                     </div>
                                     <div className={`text-gray-400 transition-transform duration-200 ${selectedDisciplineId === discipline.id ? 'rotate-180' : ''}`}>
                                         <Image

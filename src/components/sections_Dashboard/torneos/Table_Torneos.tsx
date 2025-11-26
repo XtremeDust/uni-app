@@ -73,6 +73,7 @@ interface ApiDiscipline{
     categoria:string;
     modo_juego:string;
     nombre_deporte:string;
+    estado: 'abierto' | 'cerrado' | 'proximo' | 'cancelado';
 }
 
 export default function Table_Torneos() {

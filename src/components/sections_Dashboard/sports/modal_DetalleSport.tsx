@@ -15,10 +15,13 @@ export interface ApiSportDetail {
   descripcion: string;
   logo_url: string | null; 
   equipamiento: string;
-  reglamento?: {
-    titulo: string;
-    archivo_url: string;
-  } | null;
+  reglamentos_deporte: ApiRegulation[];
+}
+
+interface ApiRegulation {
+  id: number;
+  titulo: string;
+  url_archivo: string;
 }
 
 interface ModalProps {
@@ -86,24 +89,35 @@ export default function Modal_DetallesDeporte({ sportData, isLoading, state, onC
           </div>
 
           <div>
-              <h4 className="font-bold text-unimar text-start mb-2">Reglamento Oficial</h4>
-              {sportData.reglamento && sportData.reglamento.archivo_url ? (
-                  <a 
-                      href={sportData.reglamento.archivo_url.startsWith('http') 
-                          ? sportData.reglamento.archivo_url 
-                          : `${API_URL}${sportData.reglamento.archivo_url}`
-                      }
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="w-full flex items-center justify-between p-3 bg-red-50 hover:bg-red-100 rounded-lg border border-red-200 transition-colors font-medium text-sm text-red-700 shadow-sm"
-                  >
-                      <span className='flex items-center gap-2'>
-                          <Image src={'/R-02.png'} alt={'pdf'} width={50} height={50} />
-                          {sportData.reglamento.titulo || "Descargar Archivo Oficial"}
-                      </span>
-                      
-                      <span className="bg-red-600 text-white px-3 py-1 rounded-full text-xs uppercase font-bold">PDF</span>
-                  </a>
+              <h4 className="font-bold text-gray-800 text-start mb-2">Reglamento Oficial</h4>
+              {sportData.reglamentos_deporte && sportData.reglamentos_deporte ? (
+                <div className="space-y-2">
+                  {sportData.reglamentos_deporte.map((reg)=>(
+                     <div key={reg.id} className="flex items-center justify-between px-2 py-1.5 bg-slate-50 rounded-lg border border-blue-100 transition-colors mb-2">
+                        <div className="flex items-center gap-3">
+                            <div className=" p-1.5 rounded bg-unimar/8">
+                                <Image
+                                    src={'/R-02.png'}
+                                    alt='imagen'
+                                    width={27}
+                                    height={25}
+                                />
+                            </div>
+                            
+                            <span className="font-semibold text-slate-700 text-sm">{reg.titulo}</span>
+                        </div>
+                        <a  
+                            href={`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api'}/regulations/${reg.id}/download`}   
+                            target="_blank" 
+                            rel="noopener noreferrer"
+                            className="bg-unimar/90 cursor-pointer hover:bg-unimar text-white text-xs font-bold py-2 px-3 rounded-lg flex items-center gap-1.5 transition-colors"
+                        >
+                            Descargar
+                        </a>
+                    </div>
+                  ))}
+              </div>
+                  
               ) : (
                   <p className="text-gray-400 text-sm italic p-2 border border-dashed border-gray-300 rounded-lg text-center">
                       Reglamento digital no disponible.
@@ -121,20 +135,20 @@ export default function Modal_DetallesDeporte({ sportData, isLoading, state, onC
     <Modal state={state}>
       <ContainModal className="bg-white w-[95%] md:w-[70%] lg:w-[80%] xl:w-[40%] max-h-[80vh] rounded-2xl grid grid-rows-[auto_minmax(0,1fr)]">
         <HeaderModal className="flex-none" onClose={onClose}>
-          <div className="text-start">
-            <h2 className="ml-5 title">Detalles del Deporte</h2>
-          </div>
+          <></>
         </HeaderModal>
         
         <div className="main-modal overflow-y-auto">
           {renderContent()}
         </div>
 
+          {/*
           <Button className='btn bg-unimar text-white  hover:opacity-95 cursor-pointer'
            onClick={onClose}
           >
             Cerrar
           </Button>
+          */}
 
       </ContainModal>
     </Modal>

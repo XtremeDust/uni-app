@@ -17,8 +17,8 @@ interface ApiDiscipline {
     categoria: string;
     modo_juego: string;
     nombre_deporte: string;
-    min_participantes:number;
-    max_participantes:number;
+    min_members_team:number;
+    max_members_team:number;
 }
 
 interface ApiTournament {
@@ -86,8 +86,8 @@ export default function team_modal({onCloseExternal, state, inscriptionToEdit, o
       return [1, 12];
     }
     return [
-      selectedDiscipline.min_participantes, 
-      selectedDiscipline.max_participantes
+      selectedDiscipline.min_members_team, 
+      selectedDiscipline.max_members_team
     ];
   }, [selectedDiscipline]); 
 

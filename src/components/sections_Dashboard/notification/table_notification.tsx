@@ -16,6 +16,10 @@ interface Notification {
     created_at: string;
 }
 
+const icon =[
+    {id:1, icon:'/personas.png'},
+]
+
 export default function NotificationCenter() {
     const [notifications, setNotifications] = useState<Notification[]>([]);
     const [loading, setLoading] = useState(true);
@@ -148,6 +152,16 @@ export default function NotificationCenter() {
                                             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                                                 {renderIcon(notif.data.icono)}
                                             </svg>
+
+                                            {icon.map((i)=>(
+                                                <Image
+                                                    key={i.icon}
+                                                    src={i.icon}
+                                                    alt='icon'
+                                                    width={50}
+                                                    height={50}
+                                                />
+                                            ))}
                                         </div>
 
                                         <div className="flex-grow pt-1 min-w-0">

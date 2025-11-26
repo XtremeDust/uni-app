@@ -35,7 +35,6 @@ interface ApiRegulation {
   id: number;
   titulo: string;
   url_archivo: string;
-
 }
 
 interface ApiActivityDetail {
@@ -59,6 +58,9 @@ interface ModalProps {
 }
 
 export default function modal_DetailActivity({ activityData, isLoading, onClose }: ModalProps) {
+
+    const API_URL = process.env.NEXT_PUBLIC_API_URL?.replace('/api', '') || 'http://localhost:8000';
+
     return (
         <Modal state={true}>
        
@@ -72,7 +74,7 @@ export default function modal_DetailActivity({ activityData, isLoading, onClose 
                 </div>
 
                 <Image
-                    src={'/logounimar-25-aniversario.png'} // `${activityData?.imagen_url}` ||
+                    src={activityData?.imagen_url ? `${API_URL}${activityData?.imagen_url}` : '/logounimar-25-aniversario.png'}
                     alt="Banner Actividad"
                     fill
                     className="object-cover"
@@ -145,12 +147,12 @@ export default function modal_DetailActivity({ activityData, isLoading, onClose 
                     </section>
 
                     <section className="bg-white p-4 rounded-xl shadow-sm border border-gray-100">
-                    <h3 className="text-lg font-bold text-slate-800 mb-3 border-b border-gray-100 pb-2">
-                        Descripción
-                    </h3>
-                    <div className="text-sm text-slate-600 leading-relaxed whitespace-pre-wrap">
-                        {activityData.contenido_completo}
-                    </div>
+                        <h3 className="text-lg font-bold text-slate-800 mb-3 border-b border-gray-100 pb-2">
+                            Descripción
+                        </h3>
+                        <div className="text-sm text-slate-600 leading-relaxed whitespace-pre-wrap">
+                            {activityData.contenido_completo}
+                        </div>
                     </section>
 
                     <section className="bg-white p-4 rounded-xl shadow-sm border border-gray-100">
@@ -186,11 +188,29 @@ export default function modal_DetailActivity({ activityData, isLoading, onClose 
                     {activityData.reglamentos && activityData.reglamentos.length > 0 ? (
                         <div className="space-y-2">
                             {activityData.reglamentos.map(reg => (
-                                <div key={reg.id} className="flex items-center gap-3 p-3 bg-slate-50 rounded-lg border border-slate-100">
-                                <div className="bg-unimar/10 p-1.5 rounded text-unimar">
-                                    <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
-                                </div>
-                                <span className="font-semibold text-slate-700 text-sm">{reg.titulo}</span>
+                                <div key={reg.id} className="flex items-center justify-between px-2 py-1.5 bg-slate-50 rounded-lg border border-blue-100 transition-colors mb-2">
+                                    <div className="flex items-center gap-3">
+                                        <div className=" p-1.5 rounded bg-unimar/8">
+                                            <Image
+                                                src={'/R-02.png'}
+                                                alt='imagen'
+                                                width={27}
+                                                height={25}
+                                            />
+                                        </div>
+                                        
+                                        <span className="font-semibold text-slate-700 text-sm">{reg.titulo}</span>
+                                    </div>
+                                    <a  
+                                        href={`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api'}/regulations/${reg.id}/download`}   
+                                        target="_blank" 
+                                        rel="noopener noreferrer"
+                                        className="bg-unimar/90 cursor-pointer hover:bg-unimar text-white text-xs font-bold py-2 px-3 rounded-lg flex items-center gap-1.5 transition-colors"
+                                    >
+                                        Descargar
+                                    </a>
+
+                                    
                                 </div>
                             ))}
                         </div>

@@ -210,7 +210,6 @@ export default function Modal_addRegulation({
     
     try {
       if (isEditMode) {
-        // EDITAR
         postUrl = `${API_URL}/regulations/${regulationToEdit!.reglamento.id}`;
         data.append('_method', 'PUT'); 
         
@@ -219,7 +218,6 @@ export default function Modal_addRegulation({
           data.append('item_id', formData.selectedItemId.toString());
         }
       } else {
-        // CREAR
         if (assignType && config && formData.selectedItemId !== null){
           postUrl = `${API_URL}/regulations`;
           data.append('assignType', assignType);
@@ -260,7 +258,7 @@ export default function Modal_addRegulation({
 
   return (
     <Modal state={state}>
-      <ContainModal className="w-full max-w-2xl bg-white text-black">
+      <ContainModal className="w-[90%] max-w-2xl h-[90%] overflow-y-auto bg-white text-black">
         <HeaderModal onClose={onClose}>
           <h2 className="text-xl font-bold text-gray-800">
             {isEditMode ? `Editar Reglamento` : (assignType ? `Asignar a ${label}` : 'Crear Nuevo Reglamento')}

@@ -137,7 +137,7 @@ export default function Modal_EditUser({ state, onClose, userToEdit, onSaveSucce
 
     return (
         <Modal state={state}>
-            <ContainModal className="w-full max-w-md bg-white text-black">
+            <ContainModal className="w-[90%] h-[90%] overflow-y-auto max-w-md bg-white text-black">
                 <HeaderModal onClose={onClose}>
                     <div className="text-start pl-4">
                         <h2 className="text-xl font-bold">Editar Usuario</h2>
