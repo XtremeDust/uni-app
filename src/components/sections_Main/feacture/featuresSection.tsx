@@ -2,6 +2,8 @@
 import Image from "next/image";
 import React, {useState} from "react";
 import {featS} from "@/types/feactures";
+import Calendar from "@/components/calendar/tournamentCalendar"
+import React_Calendar from "@/components/calendar/React-tournamentCalendar"
 
  export default function featuresS(){
 
@@ -42,6 +44,8 @@ import {featS} from "@/types/feactures";
                     </a>
                 ))}
             </div>
+            <Calendar></Calendar>
+            <React_Calendar></React_Calendar>
         </div>
     );
  }
