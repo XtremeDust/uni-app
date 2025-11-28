@@ -112,8 +112,8 @@ export default function NotificationCenter() {
     if (loading) return <div className="p-10 text-center text-gray-500">Cargando notificaciones...</div>;
 
     return (
-        <div className="Case2 overflow-y-auto text-black p-4">
-            <section className="max-w-5xl mx-auto bg-white  rounded-lg shadow col-span-2 space-y-1">
+        <div className="Case2 overflow-y-auto text-blackp-4">
+            <section className="  bg-white rounded-lg shadow col-span-2 space-y-1">
                 
                 <div className="flex justify-between items-center mb-6 p-6">
                     <h3 className="text-2xl font-bold text-black">Centro de Notificaciones</h3>

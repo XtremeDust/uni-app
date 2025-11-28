@@ -258,7 +258,7 @@ export default function Modal_addRegulation({
 
   return (
     <Modal state={state}>
-      <ContainModal className="w-[90%] max-w-2xl h-[90%] overflow-y-auto bg-white text-black">
+      <ContainModal className="w-[90%] max-w-2xl  overflow-y-auto bg-white text-black">
         <HeaderModal onClose={onClose}>
           <h2 className="text-xl font-bold text-gray-800">
             {isEditMode ? `Editar Reglamento` : (assignType ? `Asignar a ${label}` : 'Crear Nuevo Reglamento')}

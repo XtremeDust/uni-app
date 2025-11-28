@@ -45,8 +45,8 @@ export default function EnrollmentPieChart() {
                         nameKey="name"
                         cx="50%"
                         cy="50%"
-                        outerRadius={110}
-                        innerRadius={60}  
+                        outerRadius={90}
+                        innerRadius={40}  
                         
                         labelLine={false}
                         
